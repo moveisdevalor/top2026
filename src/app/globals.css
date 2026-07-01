@@ -113,6 +113,7 @@ img, svg { max-width: 100%; height: auto; }
   clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 65%, 0 100%);
   width: 80px;
   height: 115px;
+  background: linear-gradient(140deg,rgba(0, 0, 0, 1) 0%, rgba(61, 61, 61, 1) 57%);
 }
 
 .flag .logo{
