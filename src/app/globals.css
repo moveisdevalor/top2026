@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #a89179;
+  --color-bg-soft: #b39c85;
+  --color-ink: #0a0a0a;
+  --color-muted: #6b6b6b;
+  --color-line: #e4e4e4;
+  --color-line-soft: #ececec;
+  --color-primary: #1554f0;
+  --color-primary-soft: #e7eeff;
+
+  --font-sans: var(--font-sans);
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+img, svg { max-width: 100%; height: auto; }
+
+::selection { background: var(--color-primary); color: white; }
+
+.text-muted { color: var(--color-muted); }
+.hairline { border-color: var(--color-line); }
+.hairline-soft { border-color: var(--color-line-soft); }
+
+.btn-dark {
+  background: var(--color-ink);
+  color: white;
+  border-radius: 9999px;
+  padding: 0.85rem 1.6rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  transition: background .2s;
+}
+.btn-dark:hover { background: var(--color-primary); }
+
+.btn-ghost {
+  color: var(--color-ink);
+  padding: 0.85rem 1.6rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  transition: color .2s;
+}
+.btn-ghost:hover { color: var(--color-primary); }
+
+.btn-blue {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 9999px;
+  padding: 0.85rem 1.6rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  transition: background .2s;
+}
+.btn-blue:hover { background: #0d3fc0; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-d { animation: float 7s ease-in-out -2s infinite; }
+
+.scribble {
+  position: relative;
+  display: inline-block;
+  color: var(--color-primary);
+  z-index: 0;
+}
+.scribble svg {
+  position: absolute;
+  inset: -25% -10% -10% -10%;
+  width: 120%;
+  height: 150%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 9999px; }
+
+.blueprint-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.font-display-bold {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-stretch: condensed;
+}
+
+.flag{
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 65%, 0 100%);
+  width: 80px;
+  height: 115px;
+}
+
+.flag .logo{
+  color: white;
+  font-size: 20px;
+  line-height: 1;
+  padding: 18px;
+}
+.flag .logo p{
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+.flag .logo p span{
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  font-size: 33px;
+  line-height: 1;
+  color: white;
+}
