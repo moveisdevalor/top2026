@@ -26,7 +26,14 @@ export function Ecosystem() {
             Fábricas que projetam, produzem e entregam o móvel acabado ao mercado final.
           </p>
 
-          <div className="flex items-center gap-3 flex-wrap mb-3 mt-8">
+          <div className="flex items-center gap-3 flex-wrap mb-6">
+            <Tag>PRODUÇÃO</Tag>
+            <Tag>MARCENARIA</Tag>
+            <Tag>ACABAMENTO</Tag>
+            <Tag>DESIGN</Tag>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap mb-3 mt-2">
             <a
               href="/industria"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"
@@ -63,7 +70,15 @@ export function Ecosystem() {
             Quem fornece a matéria-prima, os componentes e a logística que sustentam a produção.
           </p>
 
-          <div className="flex items-center gap-3 flex-wrap lg:justify-end mb-3 mt-8">
+          <div className="flex items-center gap-3 flex-wrap lg:justify-end mb-6">
+            <Tag>MADEIRA & MDF</Tag>
+            <Tag>FERRAGENS</Tag>
+            <Tag>TECIDOS</Tag>
+            <Tag>TINTAS</Tag>
+            <Tag>LOGÍSTICA</Tag>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap lg:justify-end mb-3 mt-2">
             <a
               href="/fornecedores"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"

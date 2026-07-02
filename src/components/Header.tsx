@@ -9,6 +9,7 @@ const linksLeft = [
 ];
 
 const linksRight = [
+  { href: "/#categorias", label: "Categorias" },
   { href: "/#faq", label: "FAQ" },
   { href: "/regulamento", label: "Regulamento" },
 ];

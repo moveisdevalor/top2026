@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #a89179;
+  --color-bg: #ffffff;
   --color-bg-soft: #b39c85;
   --color-ink: #0a0a0a;
   --color-muted: #6b6b6b;
@@ -20,10 +20,6 @@ html, body {
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
 }
 
 html { -webkit-text-size-adjust: 100%; }

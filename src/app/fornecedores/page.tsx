@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Header } from "@/components/Header";
+import { MenuInvertido } from "@/components/MenuInvertido";
 import { Footer } from "@/components/Sections";
 import { VoteForm } from "@/components/VoteForm";
 
@@ -32,7 +32,7 @@ const sugestoes = [
 export default function FornecedoresPage() {
   return (
     <>
-      <Header />
+      <MenuInvertido />
       <main>
         <section className="relative bg-white text-[var(--color-ink)] overflow-hidden">
           <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-10 sm:pt-16 pb-6 sm:pb-10 text-center">

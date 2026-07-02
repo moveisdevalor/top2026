@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Header } from "@/components/Header";
+import { MenuInvertido } from "@/components/MenuInvertido";
 import { Footer } from "@/components/Sections";
 import { Regulamento } from "@/components/Regulamento";
 
@@ -123,7 +123,7 @@ const artigos = [
 export default function RegulamentoIndustriaPage() {
   return (
     <>
-      <Header />
+      <MenuInvertido />
       <main>
         <Regulamento
           area="industria"
