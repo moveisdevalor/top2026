@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MenuInvertido } from "@/components/MenuInvertido";
-import { Footer } from "@/components/Sections";
+import { Footer } from "@/components/HomeSections";
 import { Regulamento } from "@/components/Regulamento";
 
 export const metadata: Metadata = {

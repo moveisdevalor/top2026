@@ -2,12 +2,12 @@
 
 @theme {
   --color-bg: #ffffff;
-  --color-bg-soft: #b39c85;
+  --color-bg-soft: #f1f3f7;
   --color-ink: #0a0a0a;
   --color-muted: #6b6b6b;
   --color-line: #e4e4e4;
   --color-line-soft: #ececec;
-  --color-primary: #1554f0;
+  --color-primary: #1a4fd4;
   --color-primary-soft: #e7eeff;
 
   --font-sans: var(--font-sans);

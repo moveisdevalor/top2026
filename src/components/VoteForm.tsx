@@ -239,7 +239,7 @@ export function VoteForm({
               </p>
               <a
                 href="/"
-                className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"
+                className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
               >
                 Voltar à home
               </a>
@@ -266,7 +266,7 @@ export function VoteForm({
               {error && <p className="text-xs text-red-600">{error}</p>}
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
               >
                 Começar a votar
               </button>
@@ -380,7 +380,7 @@ export function VoteForm({
                 type="button"
                 onClick={addVote}
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {submitting ? "Enviando..." : "Próximo →"}
               </button>

@@ -89,7 +89,7 @@ export function Regulamento({ area, voterLabel, brandLabel, data }: Props) {
         <div className="text-center mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
           <a
             href={`/${area === "industria" ? "industria" : "fornecedores"}`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Ir para votação
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +98,7 @@ export function Regulamento({ area, voterLabel, brandLabel, data }: Props) {
           </a>
           <a
             href="/regulamento"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-[var(--color-line)] text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-ink)] transition-colors bg-white"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-[var(--color-line)] text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-primary)] transition-colors bg-white"
           >
             Outro regulamento
           </a>

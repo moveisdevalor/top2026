@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MenuInvertido } from "@/components/MenuInvertido";
-import { Footer } from "@/components/Sections";
+import { Footer } from "@/components/HomeSections";
+import { HeroCard, LabelClaro, ChipAzulClaro, PillBranco, PillContorno, PillAzul, GRADIENTE, AZUL } from "@/components/DesignSystem";
 
 export const metadata: Metadata = {
   title: "Sobre — TOP 20 Móveis de Valor",
@@ -13,71 +14,44 @@ export default function SobrePage() {
     <>
       <MenuInvertido />
       <main>
-        <section className="relative bg-white text-[var(--color-ink)] overflow-hidden">
-          <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-10 sm:pt-16 pb-6 sm:pb-10 text-center">
-            <div className="inline-flex items-center gap-3 sm:gap-4">
-              <span className="w-8 sm:w-12 h-px bg-[var(--color-line)]" />
-              <span className="text-[10px] sm:text-[11px] tracking-[0.3em] sm:tracking-[0.35em] text-[var(--color-muted)] font-semibold">
-                SOBRE O PRÊMIO TOP 20
-              </span>
-              <span className="w-8 sm:w-12 h-px bg-[var(--color-line)]" />
-            </div>
+        <HeroCard>
+          <LabelClaro center>SOBRE O PRÊMIO TOP 20</LabelClaro>
+
+          <h1 className="font-black text-[2.25rem] sm:text-5xl md:text-7xl leading-[1.02] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
+            Vote agora e ajude<br className="hidden sm:block" /> a decidir quem é<br />
+            <span style={{ color: "#d4a017" }}>TOP 20</span> de <span style={{ color: "#7cc4e8" }}>2026</span>.
+          </h1>
+
+          <p className="text-white/75 leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10 text-[15px] sm:text-base md:text-lg">
+            A edição 2026 do TOP 20 é mais que um ranking — é o prêmio que
+            consagra relevância, reputação e relacionamento no setor moveleiro.
+            E quem define os vencedores é quem realmente entende o mercado:
+            lojistas e compradores que vivem o dia a dia das vendas e dos
+            desafios da indústria.
+          </p>
+
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 mb-10 sm:mb-12">
+            <PillBranco href="/industria">Votar agora</PillBranco>
+            <PillContorno href="/vencedores">Ver vencedores</PillContorno>
           </div>
 
-          <div className="relative max-w-[1100px] mx-auto px-4 sm:px-6 md:px-10 pb-16 sm:pb-20 md:pb-28 text-center">
-            <div className="text-[11px] tracking-[0.3em] text-[var(--color-muted)] mb-5 sm:mb-6">
-              EDIÇÃO 2026
-            </div>
-
-            <h1 className="font-bold text-[2.25rem] sm:text-5xl md:text-7xl leading-[1.02] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
-              Vote agora e ajude<br className="hidden sm:block" /> a decidir quem é<br />
-              <span style={{ color: "#d4a017" }}>TOP 20</span> de <span style={{ color: "#4aa0c8" }}>2026</span>.
-            </h1>
-
-            <p className="text-[var(--color-muted)] leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10 text-[15px] sm:text-base md:text-lg">
-              A edição 2026 do TOP 20 é mais que um ranking — é o prêmio que
-              consagra relevância, reputação e relacionamento no setor moveleiro.
-              E quem define os vencedores é quem realmente entende o mercado:
-              lojistas e compradores que vivem o dia a dia das vendas e dos
-              desafios da indústria.
-            </p>
-
-            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 mb-10 sm:mb-12">
-              <a
-                href="/industria"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"
-              >
-                Votar agora
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 5l7 7-7 7" />
-                </svg>
-              </a>
-              <a
-                href="/vencedores"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-[var(--color-line)] text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-ink)] transition-colors"
-              >
-                Ver vencedores
-              </a>
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-2">
-              {["RELEVÂNCIA", "REPUTAÇÃO", "RELACIONAMENTO", "RECONHECIMENTO"].map((t) => (
-                <Tag key={t}>{t}</Tag>
-              ))}
-            </div>
+          <div className="flex flex-wrap justify-center gap-2">
+            {["RELEVÂNCIA", "REPUTAÇÃO", "RELACIONAMENTO", "RECONHECIMENTO"].map((t) => (
+              <ChipAzulClaro key={t}>{t}</ChipAzulClaro>
+            ))}
           </div>
-        </section>
+        </HeroCard>
 
-        <section className="relative bg-white border-t border-[var(--color-line-soft)] overflow-hidden">
+        <section className="relative bg-white overflow-hidden">
           <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 py-16 sm:py-20 md:py-28">
             <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 sm:gap-16 items-center">
               <div>
-                <div className="text-[11px] tracking-[0.3em] text-[var(--color-muted)] mb-4">
+                <p className="text-[11px] tracking-[0.3em] font-semibold mb-4" style={{ color: AZUL }}>
                   O PRÊMIO
-                </div>
-                <h2 className="font-bold text-[2rem] sm:text-4xl md:text-6xl leading-[1.05] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
+                </p>
+                <h2 className="font-black text-[2rem] sm:text-4xl md:text-6xl leading-[1.05] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
                   Quem transforma<br />o seu negócio<br />
-                  <span style={{ color: "#d4a017" }}>todos os dias?</span>
+                  <span style={{ color: AZUL }}>todos os dias?</span>
                 </h2>
                 <p className="text-[var(--color-muted)] leading-relaxed max-w-md mb-7 sm:mb-8 text-[15px] sm:text-base">
                   O seu negócio nasce do mercado, para o mercado. E o TOP 20 é o
@@ -85,28 +59,20 @@ export default function SobrePage() {
                   do que ser lembrado: é ter a confiança e o respeito de todo o setor.
                 </p>
 
-                <a
-                  href="/industria"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[var(--color-ink)] text-white text-sm font-semibold hover:bg-[var(--color-primary)] transition-colors"
-                >
-                  Participar do TOP 20
-                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M13 5l7 7-7 7" />
-                  </svg>
-                </a>
+                <PillAzul href="/industria">Participar do TOP 20</PillAzul>
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <Metric value="12.480" label="Votos" accent="#d4a017" />
-                <Metric value="20" label="Marcas" accent="#4aa0c8" />
+                <Metric value="20" label="Marcas" accent={AZUL} />
                 <Metric value="11ª" label="Edição" accent="#d4a017" />
-                <Metric value="2026" label="Ano" accent="#4aa0c8" />
+                <Metric value="2026" label="Ano" accent={AZUL} />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="relative bg-[#0a0a0a] text-white overflow-hidden">
+        <section className="relative text-white overflow-hidden" style={{ background: GRADIENTE }}>
           <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-12 sm:pt-16 pb-6 sm:pb-10 text-center">
             <div className="inline-flex items-center gap-3 sm:gap-4">
               <span className="w-8 sm:w-12 h-px bg-white/20" />
@@ -118,7 +84,7 @@ export default function SobrePage() {
           </div>
 
           <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pb-16 sm:pb-20 md:pb-28">
-            <h2 className="font-bold text-[2rem] sm:text-4xl md:text-6xl leading-[1.05] sm:leading-[0.95] tracking-[-0.02em] mb-10 sm:mb-12 text-center max-w-2xl mx-auto text-balance">
+            <h2 className="font-black text-[2rem] sm:text-4xl md:text-6xl leading-[1.05] sm:leading-[0.95] tracking-[-0.02em] mb-10 sm:mb-12 text-center max-w-2xl mx-auto text-balance">
               Três passos<br />para participar.
             </h2>
 
@@ -139,7 +105,7 @@ export default function SobrePage() {
                 n="03"
                 title="Resultado oficial"
                 desc="O ranking é publicado na revista Móveis de Valor e nos canais oficiais do TOP 20."
-                accent="#4aa0c8"
+                accent="#7cc4e8"
               />
             </div>
           </div>
@@ -147,14 +113,6 @@ export default function SobrePage() {
       </main>
       <Footer />
     </>
-  );
-}
-
-function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="px-4 py-1.5 rounded-full text-[10px] tracking-[0.2em] font-semibold border border-[var(--color-line)] text-[var(--color-muted)] bg-[var(--color-bg-soft)]">
-      {children}
-    </span>
   );
 }
 
@@ -198,7 +156,7 @@ function Step({
   accent: string;
 }) {
   return (
-    <div className="relative p-6 sm:p-8 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.05] transition-colors">
+    <div className="relative p-6 sm:p-8 rounded-2xl border border-white/15 bg-white/[0.06] hover:bg-white/10 transition-colors">
       <div
         className="text-4xl sm:text-5xl font-bold tracking-tight leading-none mb-5 sm:mb-6"
         style={{ color: accent }}
@@ -208,7 +166,7 @@ function Step({
       <h3 className="text-lg sm:text-xl font-bold tracking-tight mb-3 text-white">
         {title}
       </h3>
-      <p className="text-sm text-white/65 leading-relaxed">{desc}</p>
+      <p className="text-sm text-white/75 leading-relaxed">{desc}</p>
     </div>
   );
 }

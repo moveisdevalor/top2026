@@ -7,8 +7,8 @@ const AZUL = "#1e3fa8";
    A aba central usa a mesma geometria do recorte superior do hero (180×32), preenchida. */
 export function MenuInvertido() {
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-[var(--color-line-soft)]">
-      <div className="relative max-w-[1240px] mx-auto h-16 px-8 flex items-center justify-between text-[13px]" style={{ color: AZUL }}>
+    <header className="relative z-50 bg-white border-t-4" style={{ borderTopColor: AZUL }}>
+      <div className="relative max-w-[1400px] mx-auto pt-5 pb-3 px-8 flex items-center justify-between text-[13px]" style={{ color: AZUL }}>
         <nav className="hidden lg:flex items-center gap-6">
           <a href="/sobre" className="hover:opacity-70 transition-opacity">Sobre</a>
           <a href="/vencedores" className="hover:opacity-70 transition-opacity">Vencedores</a>
@@ -40,34 +40,37 @@ export function MenuInvertido() {
         </nav>
       </div>
 
-      {/* aba azul central: o "negativo" do recorte do hero, com o logo em branco */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[240px]">
+      {/* aba azul central: o "negativo" do recorte do hero, com o logo em branco
+          (mesmas medidas do logo da home: TOP20 28px + micro 7px) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px]">
         <svg viewBox="0 0 180 32" className="w-full h-auto block" aria-hidden="true">
           <path d="M0 0 C22 0 23 32 45 32 H135 C157 32 158 0 180 0 Z" fill={AZUL} />
         </svg>
         <a
           href="/"
           aria-label="TOP20 — Móveis de Valor"
-          className="absolute inset-0 flex flex-col items-center justify-center text-white"
+          className="absolute inset-0 flex items-center justify-center text-white"
           style={{ textDecoration: "none", lineHeight: 1, userSelect: "none" }}
         >
-          <span style={{ fontWeight: 900, fontSize: 20, letterSpacing: "-0.03em" }}>TOP20</span>
-          <span
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignSelf: "center",
-              width: 72,
-              fontWeight: 700,
-              fontSize: 5,
-              textTransform: "uppercase",
-              opacity: 0.85,
-              marginTop: 2,
-            }}
-          >
-            {"MÓVEIS DE VALOR".split("").map((c, i) => (
-              <span key={i}>{c === " " ? " " : c}</span>
-            ))}
+          <span style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontWeight: 900, fontSize: 28, letterSpacing: "-0.03em", textAlign: "center" }}>
+              TOP20
+            </span>
+            <span
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontWeight: 700,
+                fontSize: 7,
+                textTransform: "uppercase",
+                opacity: 0.85,
+                marginTop: 3,
+              }}
+            >
+              {"MÓVEIS DE VALOR".split("").map((c, i) => (
+                <span key={i}>{c === " " ? " " : c}</span>
+              ))}
+            </span>
           </span>
         </a>
       </div>

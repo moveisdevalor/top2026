@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MenuInvertido } from "@/components/MenuInvertido";
-import { Footer } from "@/components/Sections";
+import { Footer } from "@/components/HomeSections";
+import { HeroCard, LabelClaro } from "@/components/DesignSystem";
 
 export const metadata: Metadata = {
   title: "Regulamento — TOP 20 Móveis de Valor",
@@ -12,27 +13,16 @@ export default function RegulamentoIndexPage() {
     <>
       <MenuInvertido />
       <main>
-        <section className="relative bg-white text-[var(--color-ink)] overflow-hidden">
-          <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-10 sm:pt-16 pb-6 sm:pb-10 text-center">
-            <div className="inline-flex items-center gap-3 sm:gap-4">
-              <span className="w-8 sm:w-12 h-px bg-[var(--color-line)]" />
-              <span className="text-[10px] sm:text-[11px] tracking-[0.3em] sm:tracking-[0.35em] text-[var(--color-muted)] font-semibold">
-                REGULAMENTO · EDIÇÃO 2026
-              </span>
-              <span className="w-8 sm:w-12 h-px bg-[var(--color-line)]" />
-            </div>
-          </div>
-
-          <div className="relative max-w-[1000px] mx-auto px-4 sm:px-6 md:px-10 pb-10 sm:pb-12 text-center">
-            <h1 className="font-bold text-3xl sm:text-4xl md:text-6xl leading-[1.05] sm:leading-[0.95] tracking-[-0.02em] mb-5 sm:mb-6 text-balance">
-              Regulamento do<br />
-              <span style={{ color: "#d4a017" }}>TOP 20</span> 2026
-            </h1>
-            <p className="text-[var(--color-muted)] leading-relaxed max-w-2xl mx-auto text-[15px] sm:text-base md:text-lg">
-              Escolha qual regulamento você quer consultar.
-            </p>
-          </div>
-        </section>
+        <HeroCard>
+          <LabelClaro center>REGULAMENTO · EDIÇÃO 2026</LabelClaro>
+          <h1 className="font-black text-3xl sm:text-4xl md:text-6xl leading-[1.05] sm:leading-[0.95] tracking-[-0.02em] mb-5 sm:mb-6 text-balance">
+            Regulamento do<br />
+            <span style={{ color: "#d4a017" }}>TOP 20</span> 2026
+          </h1>
+          <p className="text-white/75 leading-relaxed max-w-2xl mx-auto text-[15px] sm:text-base md:text-lg">
+            Escolha qual regulamento você quer consultar.
+          </p>
+        </HeroCard>
 
         <section className="bg-[var(--color-bg-soft)] border-y border-[var(--color-line-soft)]">
           <div className="max-w-[1000px] mx-auto px-4 sm:px-6 md:px-10 py-12 sm:py-16 md:py-24 grid sm:grid-cols-2 gap-4 sm:gap-6">
@@ -74,7 +64,7 @@ function RegCard({
   return (
     <a
       href={href}
-      className="group block p-6 sm:p-8 rounded-2xl border border-[var(--color-line)] bg-white hover:border-[var(--color-ink)] transition-colors"
+      className="group block p-6 sm:p-8 rounded-2xl border border-[var(--color-line)] bg-white hover:border-[var(--color-primary)] transition-colors"
     >
       <div
         className="text-[11px] tracking-[0.3em] font-bold mb-3"

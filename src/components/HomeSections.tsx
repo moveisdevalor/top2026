@@ -1,58 +1,33 @@
+"use client";
+
 /* Seções da home no design system do hero (FormaShape):
-   degradê azul, cantos 40px, pills com círculo-seta, chips e labels espaçadas. */
+   degradê azul, cantos 40px, pills com círculo-seta, chips e labels espaçadas.
+   As faixas alternam branco/cinza, conectadas pelo divisor de aba central
+   (mesma curva da base do hero). */
 
-const GRADIENTE =
-  "radial-gradient(120% 90% at 50% -10%, #5b9cf6 0%, rgba(47,106,224,0.55) 40%, rgba(47,106,224,0) 65%), linear-gradient(160deg, #2e6fe8 0%, #1a4fd4 45%, #0d2fa6 100%)";
+import { GRADIENTE, AZUL, CINZA, Label, PillAzul, PillBranco, ChipAzulClaro } from "./DesignSystem";
 
-const AZUL = "#1a4fd4";
-
-function Seta() {
+/* Divisor de faixa: a cor da seção anterior "pinga" sobre a atual com a
+   mesma aba convexa da base do hero; a seta (opcional) rola até a seção. */
+export function Divisor({ corAnterior, comSeta = true }: { corAnterior: string; comSeta?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14M13 5l7 7-7 7" />
-    </svg>
-  );
-}
-
-function PillBranco({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
-      style={{ color: AZUL }}
-    >
-      {children}
-      <Seta />
-    </a>
-  );
-}
-
-function PillAzul({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      className="inline-flex items-center gap-2 rounded-full text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition-opacity"
-      style={{ background: AZUL }}
-    >
-      {children}
-      <Seta />
-    </a>
-  );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[11px] tracking-[0.3em] font-semibold mb-4" style={{ color: AZUL }}>
-      {children}
-    </p>
-  );
-}
-
-function ChipAzulClaro({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="px-3 py-1 rounded-full text-[10px] tracking-[0.2em] font-semibold border border-white/25 text-white/85">
-      {children}
-    </span>
+    <div className="relative">
+      <svg viewBox="0 0 880 29" preserveAspectRatio="none" className="block w-full h-12" aria-hidden="true">
+        <path d="M385 0 C410 0 412 29 440 29 C468 29 470 0 495 0 Z" fill={corAnterior} />
+      </svg>
+      {comSeta && (
+        <button
+          aria-label="Rolar até a seção"
+          onClick={(e) => e.currentTarget.closest("section, footer")?.scrollIntoView({ behavior: "smooth" })}
+          className="absolute left-1/2 top-3 -translate-x-1/2 flex bg-transparent border-none p-0 cursor-pointer"
+          style={{ color: AZUL }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -81,8 +56,10 @@ export function Pilares() {
 /* ── CATEGORIAS ── */
 export function Categorias() {
   return (
-    <section id="categorias" className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
-      <div className="max-w-[1240px] mx-auto">
+    <section id="categorias" style={{ background: CINZA }}>
+      <Divisor corAnterior="#ffffff" />
+      <div className="px-4 sm:px-6 md:px-10 pt-8 pb-16 md:pb-24">
+      <div className="max-w-[1400px] mx-auto">
         <div className="text-center mb-12">
           <Label>QUEM PARTICIPA</Label>
           <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08]">
@@ -114,6 +91,7 @@ export function Categorias() {
             notaCor="#7cc4e8"
           />
         </div>
+      </div>
       </div>
     </section>
   );
@@ -178,8 +156,10 @@ export function Faq() {
   ];
 
   return (
-    <section id="faq" className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
-      <div className="max-w-[1240px] mx-auto grid lg:grid-cols-[1fr_2fr] gap-10 sm:gap-12">
+    <section id="faq" style={{ background: CINZA }}>
+      <Divisor corAnterior="#ffffff" />
+      <div className="px-4 sm:px-6 md:px-10 pt-8 pb-16 md:pb-24">
+      <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_2fr] gap-10 sm:gap-12">
         <div>
           <Label>DÚVIDAS</Label>
           <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08]">
@@ -221,6 +201,7 @@ export function Faq() {
           ))}
         </div>
       </div>
+      </div>
     </section>
   );
 }
@@ -228,9 +209,11 @@ export function Faq() {
 /* ── CTA ── */
 export function Cta() {
   return (
-    <section className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
+    <section className="bg-white">
+      <Divisor corAnterior={CINZA} />
+      <div className="px-4 sm:px-6 md:px-10 pt-8 pb-16 md:pb-24">
       <div
-        className="max-w-[1240px] mx-auto rounded-[40px] text-white text-center px-8 py-14 sm:px-12 md:px-20 md:py-24"
+        className="max-w-[1400px] mx-auto rounded-[40px] text-white text-center px-8 py-14 sm:px-12 md:px-20 md:py-24"
         style={{ background: GRADIENTE }}
       >
         <h2 className="font-black text-3xl sm:text-4xl md:text-6xl tracking-[-0.03em] leading-[1.05] text-balance">
@@ -248,15 +231,19 @@ export function Cta() {
           </a>
         </div>
       </div>
+      </div>
     </section>
   );
 }
 
 /* ── FOOTER ── */
+/* Mesmo tom de azul do hero (GRADIENTE), full-bleed como a primeira section,
+   sem o divisor de aba no topo — encosta reto na seção anterior. */
 export function Footer() {
   return (
-    <footer className="px-4 sm:px-6 md:px-10 pb-12">
-      <div className="max-w-[1240px] mx-auto rounded-[40px] text-white p-8 sm:p-12" style={{ background: GRADIENTE }}>
+    <footer className="text-white" style={{ background: GRADIENTE }}>
+      <div className="px-4 sm:px-6 md:px-10 pt-10 pb-12">
+      <div className="max-w-[1400px] mx-auto">
         <div className="grid sm:grid-cols-2 md:grid-cols-[2fr_1fr_1fr] gap-8 sm:gap-12">
           <div>
             <div className="font-black text-2xl tracking-[-0.02em] mb-4">TOP20</div>
@@ -306,6 +293,7 @@ export function Footer() {
           <span>© {new Date().getFullYear()} Móveis de Valor.</span>
           <span className="tracking-[0.2em] uppercase">Ser escolhido é TOP</span>
         </div>
+      </div>
       </div>
     </footer>
   );

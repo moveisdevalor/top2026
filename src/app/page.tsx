@@ -1,14 +1,42 @@
+"use client";
+
+import { useState } from "react";
 import { FormaShapeFull } from "@/components/FormaShapeFull";
-import { Pilares, Categorias, Faq, Cta, Footer } from "@/components/HomeSections";
+import { Pilares, Faq, Cta, Footer } from "@/components/HomeSections";
+import { VoteForm } from "@/components/VoteForm";
+
+const sugestoesIndustria = [
+  "Móveis Alpha", "Lopas", "Henn", "Madesa", "Kappesberg", "Politorno",
+  "Todeschini", "Dell Anno", "Florense", "Bontempo", "Sca", "Italínea",
+  "Lider Interiores", "Artefacto", "Sierra Móveis", "Breton",
+];
+
+const sugestoesFornecedor = [
+  "Duratex", "Eucatex", "Berneck", "Arauco", "Guararapes", "Masisa",
+  "Hettich", "Blum", "Soprano", "Hafele", "FGV", "Indufix", "Karsten",
+  "Sultextil", "Sayerlack", "Renner", "Sherwin-Williams",
+];
+
+const linksMobile = [
+  { href: "/sobre", label: "Sobre" },
+  { href: "/vencedores", label: "Vencedores" },
+  { href: "/#pilares", label: "Pilares" },
+  { href: "/#categorias", label: "Categorias" },
+  { href: "/#faq", label: "FAQ" },
+  { href: "/regulamento", label: "Regulamento" },
+];
 
 export default function Home() {
+  const [votando, setVotando] = useState<"industria" | "fornecedores" | null>(null);
+  const [menuAberto, setMenuAberto] = useState(false);
+
   return (
     <main>
       {/* hero: forma azul de largura total; menu e conteúdo vivem dentro dela */}
-      <section className="pt-1 pb-16">
-        <FormaShapeFull>
+      <section className="pt-1 pb-16 relative">
+        <FormaShapeFull menuAberto={menuAberto} onMenuClick={() => setMenuAberto(!menuAberto)}>
           {/* menu nas laterais do recorte superior */}
-          <nav className="absolute top-5 inset-x-0 z-20 hidden lg:flex items-center justify-between px-8 pt-4 text-[13px] text-white/85">
+          <nav className="absolute top-5 left-1/2 -translate-x-1/2 w-full max-w-[1400px] z-20 hidden lg:flex items-center justify-between px-20 pt-4 text-[13px] text-white/85">
             <div className="flex items-center gap-6">
               <a href="/sobre" className="hover:text-white transition-colors">Sobre</a>
               <a href="/vencedores" className="hover:text-white transition-colors">Vencedores</a>
@@ -40,24 +68,45 @@ export default function Home() {
             </div>
           </nav>
 
-          {/* cadeira no centro */}
-          <img
-            src="/chair-blue.png"
-            alt=""
-            className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[38%] max-w-[520px] pointer-events-none select-none"
-          />
+          {/* cadeira: desliza até a borda do container quando um "Votar" é clicado
+              (indústrias → direita, fornecedores → esquerda), ficando só metade
+              visível — cortada na borda do container (não na borda da tela), por
+              isso fica num wrapper com overflow:hidden do tamanho do container. */}
+          <div className="hidden md:block absolute inset-0 overflow-hidden pointer-events-none">
+            <img
+              src="/chair-blue.png"
+              alt=""
+              className="absolute w-[38%] max-w-[520px] select-none"
+              style={{
+                top: "50%",
+                left: votando === "industria" ? "100%" : votando === "fornecedores" ? "0%" : "50%",
+                transform: "translate(-50%, -50%)",
+                transition: "left 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            />
+          </div>
 
-          {/* marcadores (+) sobre a cadeira */}
-          <span className="hidden md:flex absolute left-[37%] top-[38%] w-7 h-7 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm text-white items-center justify-center text-base pointer-events-none">
+          {/* marcadores (+) sobre a cadeira: somem junto com a votação */}
+          <span
+            className="hidden md:flex absolute left-[37%] top-[38%] w-7 h-7 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm text-white items-center justify-center text-base pointer-events-none transition-opacity duration-300"
+            style={{ opacity: votando ? 0 : 1 }}
+          >
             +
           </span>
-          <span className="hidden md:flex absolute right-[39%] bottom-[27%] w-7 h-7 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm text-white items-center justify-center text-base pointer-events-none">
+          <span
+            className="hidden md:flex absolute right-[39%] bottom-[27%] w-7 h-7 rounded-full bg-white/20 border border-white/30 backdrop-blur-sm text-white items-center justify-center text-base pointer-events-none transition-opacity duration-300"
+            style={{ opacity: votando ? 0 : 1 }}
+          >
             +
           </span>
 
-          {/* colunas: Indústrias × Fornecedores, ancoradas na base */}
-          <div className="relative z-10 w-full self-end mb-14 grid gap-10 md:grid-cols-2 items-end text-white">
-            <div className="max-w-[340px]">
+          {/* colunas: Indústrias × Fornecedores, ancoradas na base — somem ao votar
+              (display:none, não apenas opacidade, para não disputar espaço no flex com o painel de voto) */}
+          <div
+            className="relative z-10 w-full self-end mb-14 gap-10 md:grid-cols-2 items-end text-white"
+            style={{ display: votando ? "none" : "grid" }}
+          >
+            <div className="max-w-[420px]">
               <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">QUEM TRANSFORMA</p>
               <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4">
                 INDÚSTRIAS
@@ -74,22 +123,23 @@ export default function Home() {
                 <Tag>MESAS</Tag>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <a
-                  href="/industria"
+                <button
+                  type="button"
+                  onClick={() => setVotando("industria")}
                   className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 5l7 7-7 7" />
                   </svg>
-                </a>
+                </button>
                 <span className="text-xs font-semibold tracking-wide" style={{ color: "#d4a017" }}>
                   Apenas lojistas
                 </span>
               </div>
             </div>
 
-            <div className="max-w-[340px] md:ml-auto md:text-right">
+            <div className="max-w-[420px] md:ml-auto md:text-right">
               <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">QUEM ABASTECE</p>
               <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4">
                 FORNECEDORES
@@ -108,21 +158,63 @@ export default function Home() {
                 <span className="text-xs font-semibold tracking-wide" style={{ color: "#4aa0c8" }}>
                   Apenas indústrias
                 </span>
-                <a
-                  href="/fornecedores"
+                <button
+                  type="button"
+                  onClick={() => setVotando("fornecedores")}
                   className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 5l7 7-7 7" />
                   </svg>
-                </a>
-
+                </button>
               </div>
             </div>
           </div>
 
+          {/* formulário de voto: ocupa 70% da tela do lado oposto à cadeira
+              (indústrias → cadeira na direita, painel na esquerda; e vice-versa) */}
+          {votando && (
+            <div
+              className={`relative z-10 w-[70%] self-end mb-8 text-white ${votando === "industria" ? "mr-auto" : "ml-auto"}`}
+            >
+              <button
+                type="button"
+                onClick={() => setVotando(null)}
+                className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors"
+              >
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Voltar
+              </button>
+              <div className="text-[var(--color-ink)] [&>section]:max-w-none [&>section]:px-0 [&>section]:py-0">
+                <VoteForm
+                  area={votando}
+                  voterLabel={votando === "industria" ? "Lojista" : "Indústria"}
+                  voteSubject={votando === "industria" ? "indústria" : "fornecedor"}
+                  brandSuggestions={votando === "industria" ? sugestoesIndustria : sugestoesFornecedor}
+                />
+              </div>
+            </div>
+          )}
         </FormaShapeFull>
+
+        {/* painel do menu mobile: abre abaixo do recorte com o botão de menu */}
+        {menuAberto && (
+          <div className="lg:hidden absolute top-16 right-4 z-30 bg-white rounded-2xl shadow-xl px-5 py-4 space-y-1 min-w-[200px]">
+            {linksMobile.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setMenuAberto(false)}
+                className="block py-2.5 text-base text-[var(--color-ink)]"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+        )}
       </section>
 
       <Pilares />
