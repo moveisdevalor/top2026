@@ -1,0 +1,312 @@
+/* Seções da home no design system do hero (FormaShape):
+   degradê azul, cantos 40px, pills com círculo-seta, chips e labels espaçadas. */
+
+const GRADIENTE =
+  "radial-gradient(120% 90% at 50% -10%, #5b9cf6 0%, rgba(47,106,224,0.55) 40%, rgba(47,106,224,0) 65%), linear-gradient(160deg, #2e6fe8 0%, #1a4fd4 45%, #0d2fa6 100%)";
+
+const AZUL = "#1a4fd4";
+
+function Seta() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M13 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function PillBranco({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
+      style={{ color: AZUL }}
+    >
+      {children}
+      <Seta />
+    </a>
+  );
+}
+
+function PillAzul({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="inline-flex items-center gap-2 rounded-full text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition-opacity"
+      style={{ background: AZUL }}
+    >
+      {children}
+      <Seta />
+    </a>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] tracking-[0.3em] font-semibold mb-4" style={{ color: AZUL }}>
+      {children}
+    </p>
+  );
+}
+
+function ChipAzulClaro({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="px-3 py-1 rounded-full text-[10px] tracking-[0.2em] font-semibold border border-white/25 text-white/85">
+      {children}
+    </span>
+  );
+}
+
+/* ── PILARES ── */
+export function Pilares() {
+  return (
+    <section id="pilares" className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
+      <div className="max-w-[820px] mx-auto text-center">
+        <Label>SOBRE O PRÊMIO</Label>
+        <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08] text-balance">
+          Quem transforma o seu negócio <span style={{ color: AZUL }}>todos os dias?</span>
+        </h2>
+        <p className="mt-6 text-[var(--color-muted)] max-w-xl mx-auto leading-relaxed text-[15px] sm:text-base">
+          O seu negócio nasce do mercado, para o mercado. E o TOP 20 é o reconhecimento de quem
+          está na linha de frente. Ser TOP 20 é mais do que ser lembrado: é ter a confiança e o
+          respeito de todo o setor.
+        </p>
+        <div className="mt-8 flex justify-center">
+          <PillAzul href="/sobre">Saiba mais</PillAzul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── CATEGORIAS ── */
+export function Categorias() {
+  return (
+    <section id="categorias" className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
+      <div className="max-w-[1240px] mx-auto">
+        <div className="text-center mb-12">
+          <Label>QUEM PARTICIPA</Label>
+          <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08]">
+            Duas categorias, um prêmio.
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <CardCategoria
+            imagem="/Industria.jpg"
+            alt="Indústria"
+            label="QUEM TRANSFORMA"
+            titulo="INDÚSTRIAS"
+            descricao="Fábricas que projetam, produzem e entregam o móvel acabado ao mercado final."
+            chips={["PRODUÇÃO", "MARCENARIA", "ACABAMENTO", "DESIGN"]}
+            href="/industria"
+            nota="Apenas lojistas"
+            notaCor="#d4a017"
+          />
+          <CardCategoria
+            imagem="/Fornecedores.jpg"
+            alt="Fornecedores"
+            label="QUEM ABASTECE"
+            titulo="FORNECEDORES"
+            descricao="Quem fornece a matéria-prima, os componentes e a logística que sustentam a produção."
+            chips={["MADEIRA & MDF", "FERRAGENS", "TECIDOS", "TINTAS", "LOGÍSTICA"]}
+            href="/fornecedores"
+            nota="Apenas indústrias"
+            notaCor="#7cc4e8"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CardCategoria(props: {
+  imagem: string;
+  alt: string;
+  label: string;
+  titulo: string;
+  descricao: string;
+  chips: string[];
+  href: string;
+  nota: string;
+  notaCor: string;
+}) {
+  return (
+    <div className="rounded-[40px] text-white p-7 sm:p-10" style={{ background: GRADIENTE }}>
+      <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">{props.label}</p>
+      <h3 className="font-black text-3xl lg:text-4xl leading-none tracking-[-0.02em] mb-4">
+        {props.titulo}
+      </h3>
+      <p className="text-white/70 text-sm leading-relaxed mb-5">{props.descricao}</p>
+      <div className="flex flex-wrap gap-2 mb-7">
+        {props.chips.map((c) => (
+          <ChipAzulClaro key={c}>{c}</ChipAzulClaro>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <PillBranco href={props.href}>Votar</PillBranco>
+        <span className="text-xs font-semibold tracking-wide" style={{ color: props.notaCor }}>
+          {props.nota}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ── FAQ ── */
+export function Faq() {
+  const items = [
+    {
+      q: "Por que votar no prêmio TOP 20?",
+      a: "TOP é quem entrega o que promete — e um pouco mais. Vamos reconhecer as marcas que unem produto, serviço e relacionamento em uma entrega de valor contínua. Não se trata de ser perfeito, mas de manter uma cultura de melhoria constante e de compromisso com o parceiro de negócios.",
+    },
+    {
+      q: "Quem pode votar nos melhores fornecedores?",
+      a: "Apenas as INDÚSTRIAS de móveis e colchões votam em fornecedores. Os LOJISTAS continuam votando nas indústrias de móveis e colchões.",
+    },
+    {
+      q: "Como funciona o processo de votação?",
+      a: "É simples. Basta acessar o ícone INDÚSTRIA ou FORNECEDOR (dependendo se é lojista ou fabricante), escolher até cinco marcas e votar, atribuindo a cada marca uma nota entre 5 e 10.",
+    },
+    {
+      q: "Até quando eu posso votar no TOP 20 de 2026?",
+      a: "O questionário para votação permanece disponível até as 24 horas do dia 07 de novembro de 2026.",
+    },
+    {
+      q: "Onde eu posso obter mais informações?",
+      a: "Basta acessar a aba Regulamento. Tudo o que você precisa saber sobre a promoção está lá, com regulamentos específicos para lojistas e fabricantes.",
+    },
+  ];
+
+  return (
+    <section id="faq" className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
+      <div className="max-w-[1240px] mx-auto grid lg:grid-cols-[1fr_2fr] gap-10 sm:gap-12">
+        <div>
+          <Label>DÚVIDAS</Label>
+          <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08]">
+            Perguntas frequentes
+          </h2>
+          <div className="mt-8">
+            <PillAzul href="/regulamento">Regulamento</PillAzul>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {items.map((it, i) => (
+            <details
+              key={it.q}
+              open={i === 0}
+              className={`group rounded-3xl px-5 py-4 sm:px-7 sm:py-5 ${i === 0 ? "text-white" : "bg-[var(--color-primary-soft)]"}`}
+              style={i === 0 ? { background: GRADIENTE } : undefined}
+            >
+              <summary className="flex items-center justify-between cursor-pointer list-none gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+                  <span className={`font-black text-xs sm:text-sm shrink-0 ${i === 0 ? "text-white/60" : "text-[var(--color-muted)]"}`}>
+                    0{i + 1}
+                  </span>
+                  <span className="font-semibold text-[15px] sm:text-base md:text-lg tracking-tight">
+                    {it.q}
+                  </span>
+                </div>
+                <span
+                  className="grid place-items-center w-8 h-8 rounded-full flex-shrink-0 bg-white group-open:rotate-45 transition-transform"
+                  style={{ color: AZUL }}
+                >
+                  +
+                </span>
+              </summary>
+              <p className={`mt-3 sm:mt-4 pl-7 sm:pl-9 text-sm leading-relaxed ${i === 0 ? "text-white/80" : "text-[var(--color-muted)]"}`}>
+                {it.a}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── CTA ── */
+export function Cta() {
+  return (
+    <section className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
+      <div
+        className="max-w-[1240px] mx-auto rounded-[40px] text-white text-center px-8 py-14 sm:px-12 md:px-20 md:py-24"
+        style={{ background: GRADIENTE }}
+      >
+        <h2 className="font-black text-3xl sm:text-4xl md:text-6xl tracking-[-0.03em] leading-[1.05] text-balance">
+          Ser lembrado é bom.
+          <br />
+          Ser escolhido é TOP.
+        </h2>
+        <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+          <PillBranco href="/industria">Votar agora</PillBranco>
+          <a
+            href="/regulamento"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold hover:border-white hover:bg-white/10 transition-colors"
+          >
+            Regulamento
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── FOOTER ── */
+export function Footer() {
+  return (
+    <footer className="px-4 sm:px-6 md:px-10 pb-12">
+      <div className="max-w-[1240px] mx-auto rounded-[40px] text-white p-8 sm:p-12" style={{ background: GRADIENTE }}>
+        <div className="grid sm:grid-cols-2 md:grid-cols-[2fr_1fr_1fr] gap-8 sm:gap-12">
+          <div>
+            <div className="font-black text-2xl tracking-[-0.02em] mb-4">TOP20</div>
+            <p className="text-white/70 max-w-sm leading-relaxed text-sm">
+              Uma realização Móveis de Valor — referência editorial do setor moveleiro brasileiro
+              desde 2019.
+            </p>
+            <div className="flex items-center gap-2 mt-6">
+              <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.2-1.5 1.5-1.5h1.4V4.9c-.2 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6V11H8.5v3h2.3v7h2.7z" />
+                </svg>
+              </a>
+              <a href="#" aria-label="Instagram" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.2" cy="6.8" r="0.5" fill="currentColor" />
+                </svg>
+              </a>
+              <a href="#" aria-label="X" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.7 3h2.9l-6.4 7.3L21.7 21h-5.9l-4.6-6-5.3 6H3l6.9-7.8L2.7 3h6l4.1 5.5L17.7 3zm-1 16.2h1.6L7.8 4.7H6L16.7 19.2z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-5">Contato</h4>
+            <ul className="space-y-2 text-sm text-white/85">
+              <li><a href="tel:+554199129877" className="hover:text-white transition-colors">(41) 9912-9877</a></li>
+              <li><a href="mailto:contato@moveisdevalor.com.br" className="hover:text-white transition-colors">contato@moveisdevalor.com.br</a></li>
+              <li className="text-white/60">Curitiba — PR</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-5">Navegação</h4>
+            <ul className="space-y-2 text-sm text-white/85">
+              <li><a href="/sobre" className="hover:text-white transition-colors">Sobre</a></li>
+              <li><a href="/vencedores" className="hover:text-white transition-colors">Vencedores</a></li>
+              <li><a href="/#faq" className="hover:text-white transition-colors">FAQ</a></li>
+              <li><a href="/regulamento" className="hover:text-white transition-colors">Regulamento</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-white/15 mt-10 pt-6 text-xs text-white/60 flex flex-col md:flex-row justify-between gap-2">
+          <span>© {new Date().getFullYear()} Móveis de Valor.</span>
+          <span className="tracking-[0.2em] uppercase">Ser escolhido é TOP</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
