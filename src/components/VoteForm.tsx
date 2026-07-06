@@ -9,6 +9,8 @@ type Props = {
   voterLabel: string;
   voteSubject: string;
   brandSuggestions?: string[];
+  /** Ajusta cores para quando o formulário está sobre o fundo azul do hero. */
+  onDark?: boolean;
 };
 
 type Vote = { marca: string; nota: number };
@@ -31,6 +33,7 @@ export function VoteForm({
   voterLabel,
   voteSubject,
   brandSuggestions = [],
+  onDark = false,
 }: Props) {
   const [identified, setIdentified] = useState(false);
   const [nome, setNome] = useState("");
@@ -47,6 +50,10 @@ export function VoteForm({
   const color = accent(area);
   const remaining = MAX - votes.length;
   const done = votes.length >= MAX;
+
+  // rótulo e título no estilo das colunas do hero
+  const heroLabel = area === "industria" ? "QUEM TRANSFORMA" : "QUEM ABASTECE";
+  const heroTitle = area === "industria" ? "INDÚSTRIAS" : "FORNECEDORES";
 
   const [locStatus, setLocStatus] = useState<"idle" | "pending" | "gps" | "ip-only">("idle");
   const [manualCity, setManualCity] = useState("");
@@ -182,8 +189,16 @@ export function VoteForm({
   if (loading) {
     return (
       <section className="max-w-[1100px] mx-auto px-4 sm:px-6 md:px-10 py-16 sm:py-20 text-center">
-        <div className="inline-block w-6 h-6 border-2 border-[var(--color-line)] border-t-[var(--color-ink)] rounded-full animate-spin" />
-        <p className="mt-3 text-xs text-[var(--color-muted)]">Carregando seus votos...</p>
+        <div
+          className={`inline-block w-6 h-6 border-2 rounded-full animate-spin ${
+            onDark
+              ? "border-white/30 border-t-white"
+              : "border-[var(--color-line)] border-t-[var(--color-ink)]"
+          }`}
+        />
+        <p className={`mt-3 text-xs ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
+          Carregando seus votos...
+        </p>
       </section>
     );
   }
@@ -193,10 +208,10 @@ export function VoteForm({
       {identified && !done && (
         <div className="lg:hidden mb-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-[var(--color-muted)]">
+            <span className={`text-xs font-semibold ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
               Voto {votes.length + 1} de {MAX}
             </span>
-            <span className="text-xs font-semibold" style={{ color }}>
+            <span className="text-xs font-semibold" style={{ color: onDark ? "#fff" : color }}>
               {votes.length}/{MAX}
             </span>
           </div>
@@ -210,7 +225,11 @@ export function VoteForm({
                     i < votes.length
                       ? color
                       : i === votes.length
-                      ? "var(--color-ink)"
+                      ? onDark
+                        ? "#fff"
+                        : "var(--color-ink)"
+                      : onDark
+                      ? "rgba(255,255,255,0.25)"
                       : "var(--color-line)",
                 }}
               />
@@ -221,61 +240,117 @@ export function VoteForm({
       <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 sm:gap-10 items-start">
         <div>
           {done ? (
-            <div className="rounded-3xl bg-white border border-[var(--color-line)] p-6 sm:p-8">
+            <div
+              className={
+                onDark
+                  ? "text-white max-w-[420px]"
+                  : "rounded-3xl bg-white border border-[var(--color-line)] p-6 sm:p-8"
+              }
+            >
               <div
-                className="inline-grid place-items-center w-14 h-14 rounded-full mb-5"
-                style={{ background: `${color}20`, color }}
+                className={`inline-grid place-items-center w-14 h-14 rounded-full mb-5 ${onDark ? "border border-white/25" : ""}`}
+                style={{ background: onDark ? "rgba(255,255,255,0.12)" : `${color}20`, color: onDark ? "#fff" : color }}
               >
                 <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-[-0.02em] mb-3">
+              <h2
+                className={
+                  onDark
+                    ? "font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4"
+                    : "text-2xl md:text-3xl font-bold tracking-[-0.02em] mb-3"
+                }
+              >
                 Obrigado!
               </h2>
-              <p className="text-[var(--color-muted)] leading-relaxed">
+              <p className={`leading-relaxed ${onDark ? "text-white/70 text-sm" : "text-[var(--color-muted)]"}`}>
                 Sua participação contribui decisivamente para valorizar marcas
                 que merecem reconhecimento pela qualidade de produtos e serviços.
               </p>
               <a
                 href="/"
-                className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                className={
+                  onDark
+                    ? "mt-6 inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
+                    : "mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                }
               >
                 Voltar à home
+                {onDark && <ArrowIcon />}
               </a>
             </div>
           ) : !identified ? (
             <form
               onSubmit={identify}
-              className="rounded-3xl bg-white border border-[var(--color-line)] p-5 sm:p-6 md:p-8 space-y-4"
+              className={
+                onDark
+                  ? "space-y-4 text-white max-w-[420px]"
+                  : "rounded-3xl bg-white border border-[var(--color-line)] p-5 sm:p-6 md:p-8 space-y-4"
+              }
             >
-              <p className="text-xs font-semibold text-[var(--color-muted)] leading-relaxed">
+              {onDark && (
+                <div>
+                  <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">{heroLabel}</p>
+                  <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em]">
+                    {heroTitle}
+                  </h2>
+                </div>
+              )}
+              <p
+                className={
+                  onDark
+                    ? "text-white/70 text-sm leading-relaxed"
+                    : "text-xs font-semibold text-[var(--color-muted)] leading-relaxed"
+                }
+              >
                 Informe seu nome e email para começar. Apenas {voterLabel.toLowerCase()}s podem votar.
               </p>
               <Input
                 value={nome}
                 onChange={setNome}
                 placeholder="Seu nome"
+                dark={onDark}
               />
               <Input
                 type="email"
                 value={email}
                 onChange={setEmail}
                 placeholder="Email"
+                dark={onDark}
               />
-              {error && <p className="text-xs text-red-600">{error}</p>}
+              {error && <p className={`text-xs ${onDark ? "text-red-200" : "text-red-600"}`}>{error}</p>}
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                className={
+                  onDark
+                    ? heroPillClass
+                    : "w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                }
               >
                 Começar a votar
+                {onDark && <ArrowIcon />}
               </button>
             </form>
           ) : (
-            <div className="rounded-3xl bg-white border border-[var(--color-line)] p-5 sm:p-6 md:p-8 space-y-5">
+            <div
+              className={
+                onDark
+                  ? "space-y-5 text-white max-w-[420px]"
+                  : "rounded-3xl bg-white border border-[var(--color-line)] p-5 sm:p-6 md:p-8 space-y-5"
+              }
+            >
+              {onDark && (
+                <div>
+                  <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">{heroLabel}</p>
+                  <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em]">
+                    {heroTitle}
+                  </h2>
+                </div>
+              )}
               <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 text-xs text-[var(--color-muted)] flex-1">
-                  <p><strong className="text-[var(--color-ink)]">{nome}</strong></p>
+                <div className={`space-y-1 text-xs flex-1 ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
+                  <p><strong className={onDark ? "text-white" : "text-[var(--color-ink)]"}>{nome}</strong></p>
                   <p>{email}</p>
                   <div className="flex items-center gap-1.5 pt-1 flex-wrap">
                     <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
@@ -291,17 +366,21 @@ export function VoteForm({
                         onBlur={() => setEditingCity(false)}
                         onKeyDown={(e) => e.key === "Enter" && setEditingCity(false)}
                         placeholder="Sua cidade"
-                        className="text-xs px-2 py-1 border border-[var(--color-line)] rounded text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-ink)]"
+                        className={
+                          onDark
+                            ? "text-xs px-2 py-1 rounded bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/70"
+                            : "text-xs px-2 py-1 border border-[var(--color-line)] rounded text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-ink)]"
+                        }
                       />
                     ) : (
                       <>
-                        <span className="text-[var(--color-ink)] font-medium">
+                        <span className={`font-medium ${onDark ? "text-white" : "text-[var(--color-ink)]"}`}>
                           {manualCity || "Localização não detectada"}
                         </span>
                         <button
                           type="button"
                           onClick={() => setEditingCity(true)}
-                          className="underline underline-offset-2 hover:text-[var(--color-ink)]"
+                          className={`underline underline-offset-2 ${onDark ? "hover:text-white" : "hover:text-[var(--color-ink)]"}`}
                         >
                           alterar
                         </button>
@@ -312,13 +391,17 @@ export function VoteForm({
                 <button
                   type="button"
                   onClick={reset}
-                  className="text-[10px] uppercase tracking-[0.15em] text-[var(--color-muted)] hover:text-[var(--color-ink)] transition-colors flex-shrink-0"
+                  className={`text-[10px] uppercase tracking-[0.15em] transition-colors flex-shrink-0 ${
+                    onDark
+                      ? "text-white/60 hover:text-white"
+                      : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                  }`}
                 >
                   Trocar
                 </button>
               </div>
 
-              <p className="text-xs font-semibold text-[var(--color-muted)]">
+              <p className={`text-xs font-semibold ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
                 Você ainda pode indicar {remaining} marca{remaining !== 1 && "s"}, com nota entre 5 e 10.
               </p>
 
@@ -330,6 +413,7 @@ export function VoteForm({
                     setError("");
                   }}
                   placeholder={`Marca de ${voteSubject}`}
+                  dark={onDark}
                 />
                 {filteredSuggestions.length > 0 && (
                   <ul className="absolute z-10 left-0 right-0 mt-1 bg-white border border-[var(--color-line)] rounded-xl shadow-sm overflow-hidden">
@@ -349,7 +433,7 @@ export function VoteForm({
               </div>
 
               <div>
-                <div className="text-[11px] tracking-[0.2em] font-semibold text-[var(--color-muted)] uppercase mb-2">
+                <div className={`text-[11px] tracking-[0.2em] font-semibold uppercase mb-2 ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
                   Nota
                 </div>
                 <div className="grid grid-cols-6 gap-2 sm:flex sm:flex-wrap">
@@ -363,6 +447,8 @@ export function VoteForm({
                         className={`h-12 sm:h-11 sm:w-11 rounded-full text-base sm:text-sm font-bold transition-colors ${
                           active
                             ? "text-white"
+                            : onDark
+                            ? "text-white/85 border border-white/30 hover:border-white hover:text-white"
                             : "text-[var(--color-muted)] border border-[var(--color-line)] hover:border-[var(--color-ink)] hover:text-[var(--color-ink)]"
                         }`}
                         style={active ? { background: color } : undefined}
@@ -374,22 +460,28 @@ export function VoteForm({
                 </div>
               </div>
 
-              {error && <p className="text-xs text-red-600">{error}</p>}
+              {error && <p className={`text-xs ${onDark ? "text-red-200" : "text-red-600"}`}>{error}</p>}
 
               <button
                 type="button"
                 onClick={addVote}
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                className={
+                  onDark
+                    ? heroPillClass
+                    : "w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                }
               >
-                {submitting ? "Enviando..." : "Próximo →"}
+                {submitting ? "Enviando..." : "Próximo"}
+                {!submitting && onDark && <ArrowIcon />}
+                {!submitting && !onDark && "→"}
               </button>
             </div>
           )}
         </div>
 
         <div>
-          <div className="text-[11px] tracking-[0.25em] font-semibold text-[var(--color-muted)] uppercase mb-4">
+          <div className={`text-[11px] tracking-[0.25em] font-semibold uppercase mb-4 ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
             Seus votos ({votes.length}/{MAX})
           </div>
 
@@ -399,9 +491,13 @@ export function VoteForm({
               return (
                 <div
                   key={i}
-                  className={`rounded-2xl border p-4 md:p-5 flex items-center gap-3 ${
+                  className={`rounded-2xl border p-4 md:p-5 flex items-center gap-3 transition-colors ${
                     v
-                      ? "bg-white border-[var(--color-ink)]"
+                      ? onDark
+                        ? "bg-white border-transparent shadow-lg shadow-black/15"
+                        : "bg-white border-[var(--color-ink)]"
+                      : onDark
+                      ? "bg-white/10 border-white/25 border-dashed backdrop-blur-sm"
                       : "bg-[var(--color-bg-soft)] border-[var(--color-line)] border-dashed"
                   }`}
                 >
@@ -409,25 +505,47 @@ export function VoteForm({
                     className="grid place-items-center w-8 h-8 rounded-full text-sm font-bold shrink-0"
                     style={{
                       background: v ? color : "transparent",
-                      color: v ? "#fff" : "var(--color-muted)",
-                      border: v ? "none" : "1px solid var(--color-line)",
+                      color: v ? "#fff" : onDark ? "rgba(255,255,255,0.7)" : "var(--color-muted)",
+                      border: v
+                        ? "none"
+                        : `1px solid ${onDark ? "rgba(255,255,255,0.35)" : "var(--color-line)"}`,
                     }}
                   >
                     {i + 1}
                   </div>
                   <div className="flex items-center justify-between gap-4 flex-1 min-w-0">
                     <div className="font-medium tracking-tight truncate">
-                      {v ? v.marca : <span className="text-[var(--color-muted)]">Marca {i + 1}</span>}
+                      {v ? (
+                        v.marca
+                      ) : (
+                        <span className={onDark ? "text-white/60" : "text-[var(--color-muted)]"}>
+                          Marca {i + 1}
+                        </span>
+                      )}
                     </div>
-                    <Stars value={v?.nota ?? 0} color={color} />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Stars
+                        value={v?.nota ?? 0}
+                        color={color}
+                        emptyColor={!v && onDark ? "rgba(255,255,255,0.3)" : "#e0e0e0"}
+                      />
+                      {v && (
+                        <span className="text-sm font-bold tabular-nums" style={{ color }}>
+                          {v.nota}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <p className="mt-6 text-xs leading-relaxed" style={{ color }}>
-            <strong>IMPORTANTE:</strong> os resultados formarão um ranking das
+          <p
+            className={`mt-6 text-xs leading-relaxed rounded-2xl p-4 ${onDark ? "bg-white/10 border border-white/20 text-white/85" : ""}`}
+            style={onDark ? undefined : { color, background: `${color}14` }}
+          >
+            <strong style={onDark ? { color } : undefined}>IMPORTANTE:</strong> os resultados formarão um ranking das
             20 marcas mais bem avaliadas e será divulgado na edição da revista
             MÓVEIS DE VALOR.
           </p>
@@ -442,11 +560,13 @@ function Input({
   onChange,
   placeholder,
   type = "text",
+  dark = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   type?: string;
+  dark?: boolean;
 }) {
   return (
     <input
@@ -454,12 +574,36 @@ function Input({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full px-4 py-3 rounded-xl border border-[var(--color-line)] text-base sm:text-sm focus:outline-none focus:border-[var(--color-ink)] transition-colors"
+      className={
+        dark
+          ? "w-full px-5 py-3 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:border-white/70 transition-colors backdrop-blur-sm"
+          : "w-full px-4 py-3 rounded-xl border border-[var(--color-line)] text-base sm:text-sm focus:outline-none focus:border-[var(--color-ink)] transition-colors"
+      }
     />
   );
 }
 
-function Stars({ value, color }: { value: number; color: string }) {
+// botão-pílula branco no estilo do "Votar" do hero
+const heroPillClass =
+  "w-full inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
+
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M13 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function Stars({
+  value,
+  color,
+  emptyColor = "#e0e0e0",
+}: {
+  value: number;
+  color: string;
+  emptyColor?: string;
+}) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 10 }).map((_, i) => (
@@ -467,7 +611,7 @@ function Stars({ value, color }: { value: number; color: string }) {
           key={i}
           viewBox="0 0 24 24"
           className="w-3 h-3"
-          fill={i < value ? color : "#e0e0e0"}
+          fill={i < value ? color : emptyColor}
         >
           <path d="M12 2L14.5 9H22L16 13.5L18.5 21L12 16.5L5.5 21L8 13.5L2 9H9.5Z" />
         </svg>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 const AZUL = "#1e3fa8";
 const BLACK = "#131313";
 
@@ -15,21 +17,50 @@ const PATH_DESKTOP = [
   "H0 Z",
 ].join(" ");
 
-// Mobile: vira um card com margem (cantos arredondados nos 4 lados) e o
-// recorte superior é estreito, deslocado à direita — só para o botão de menu.
-// O logo "TOP20" fica fora do card, solto na margem superior esquerda.
+// Mobile: vira um card com margem. O recorte da logo já começa na altura do
+// canto esquerdo (sem subida antes dele — canto baixo, aguardando definição
+// de quanto de arredondamento é aceitável ali). A transição de volta ao topo
+// (depois da logo) é uma curva suave, com os pontos de controle bem
+// espaçados entre si (não agrupados perto de um ponto): pontos de controle
+// muito próximos criam uma quebra/ângulo no meio da curva em vez de uma
+// transição lisa, e isso fica mais visível ainda por causa da escala não
+// uniforme do clip-path (objectBoundingBox), que distorce o desenho.
 const PATH_MOBILE = [
-  "M40 0",
-  "H620 C645 0 646 28 668 28 H752 C774 28 775 0 800 0", // recorte estreito (menu), deslocado à direita
-  "H840 A40 40 0 0 1 880 40",
-  "V490 A40 40 0 0 1 840 530",
-  "H40 A40 40 0 0 1 0 490",
-  "V40 A40 40 0 0 1 40 0 Z",
+  // canto superior esquerdo arredondado (~40px na tela; raios diferentes em x/y
+  // para compensar a escala não uniforme do clip-path)
+  "M0 71",
+  "C0 52 46 36 103 36",
+  "H350 C400 36 445 0 490 0", // recorte da logo: mais curto, só o necessário para a logo
+  "H880 V530",
+  "H0 Z",
 ].join(" ");
 
-// posição do centro do recorte mobile (para o botão de menu), em % da caixa 880×530
-const MENU_LEFT_PCT = ((668 + 752) / 2 / 880) * 100;
-const MENU_TOP_PCT = (14 / 530) * 100;
+// O clip-path (objectBoundingBox) estica o desenho junto com o card, então o
+// PATH_MOBILE estático só fica certo perto de 375px de largura — em telas
+// intermediárias (ex.: tablets) o canto vira uma elipse larga. Esta versão
+// recalcula o path a partir do tamanho real do card: raio do canto (40px,
+// igual ao border-radius) e profundidade do recorte (32px) são fixados em px
+// de tela e convertidos de volta para as unidades da caixa 880×530.
+function buildMobilePath(w: number, h: number) {
+  const rx = 40 / (w / 880);
+  const ry = 40 / (h / 530);
+  const d = 44 / (h / 530); // profundidade do recorte da logo
+  return [
+    `M0 ${d + ry}`,
+    `C0 ${d + ry * 0.45} ${rx * 0.45} ${d} ${rx} ${d}`,
+    `H350 C400 ${d} 445 0 490 0`,
+    "H880 V530",
+    "H0 Z",
+  ].join(" ");
+}
+
+// posição da logo dentro do recorte: horizontal em % (o recorte escala com a
+// largura), vertical em px fixo (a profundidade do recorte é fixa em 44px de
+// tela — % desalinharia quando o card cresce com o conteúdo)
+const NOTCH_LEFT_PCT = (215 / 880) * 100;
+// um pouco acima do centro do recorte (44px), para sobrar mais respiro
+// entre a logo e a borda azul abaixo dela
+const NOTCH_TOP_PX = 16;
 
 export function FormaShapeFull({
   children,
@@ -42,14 +73,28 @@ export function FormaShapeFull({
   /** Clique no botão de menu mobile, dentro do recorte. */
   onMenuClick?: () => void;
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  // path estático como fallback (SSR / antes da primeira medição)
+  const [mobilePath, setMobilePath] = useState(PATH_MOBILE);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w > 0 && h > 0) setMobilePath(buildMobilePath(w, h));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <div
+      className="forma-shape-wrapper"
       style={{
         position: "relative",
         width: "100%",
-        // cabe no campo de visão de uma tela (com folga para o padding da section)
-        height: "calc(100svh - 20px)",
-        minHeight: 620,
       }}
     >
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
@@ -57,14 +102,17 @@ export function FormaShapeFull({
           <path d={PATH_DESKTOP} />
         </clipPath>
         <clipPath id="forma-clip-mobile" clipPathUnits="objectBoundingBox" transform={`scale(${1 / 880}, ${1 / 530})`}>
-          <path d={PATH_MOBILE} />
+          <path d={mobilePath} />
         </clipPath>
       </svg>
 
       {/* forma azul com recortes transparentes; o conteúdo fica dentro do clip.
-          Abaixo de lg, vira um card com margem e o recorte fica largo. */}
+          Abaixo de lg, vira um card com margem e o recorte fica largo.
+          O card fica no fluxo normal (não absoluto) para que, no mobile, a
+          altura acompanhe o conteúdo (ex.: formulário de voto empilhado). */}
       <div
-        className="forma-frame forma-clip-path"
+        ref={cardRef}
+        className="forma-card forma-clip-path"
         style={{
           background:
             "radial-gradient(120% 90% at 50% -10%, #5b9cf6 0%, rgba(47,106,224,0.55) 40%, rgba(47,106,224,0) 65%), linear-gradient(160deg, #2e6fe8 0%, #1a4fd4 45%, #0d2fa6 100%)",
@@ -72,6 +120,7 @@ export function FormaShapeFull({
       >
         {/* wrapper interno: mantém o conteúdo na largura do card original */}
         <div
+          className="forma-content-padding"
           style={{
             position: "relative",
             width: "100%",
@@ -80,7 +129,6 @@ export function FormaShapeFull({
             height: "100%",
             display: "flex",
             alignItems: "center",
-            padding: "60px 80px",
           }}
         >
           {children}
@@ -88,9 +136,34 @@ export function FormaShapeFull({
       </div>
 
       {/* frame invisível com a MESMA margem/posição do card acima (sem clip nem
-          fundo) — referência para o botão de menu ficar exatamente dentro do
-          recorte, já que no mobile o card tem inset em relação à caixa cheia. */}
+          fundo) — referência para a logo e o botão de menu ficarem exatamente
+          na posição certa, já que no mobile o card tem inset em relação à
+          caixa cheia. */}
       <div className="forma-frame lg:hidden" style={{ pointerEvents: "none" }}>
+        {/* logo: dentro do recorte à esquerda (fundo branco do próprio card) */}
+        <a
+          href="/"
+          aria-label="TOP20 — Móveis de Valor"
+          className="flex flex-col items-center"
+          style={{
+            position: "absolute",
+            top: NOTCH_TOP_PX,
+            left: `${NOTCH_LEFT_PCT}%`,
+            transform: "translate(-50%, -50%)",
+            color: BLACK,
+            textDecoration: "none",
+            lineHeight: 1,
+            userSelect: "none",
+            pointerEvents: "auto",
+          }}
+        >
+          <span style={{ fontWeight: 900, fontSize: 26, letterSpacing: "-0.03em" }}>TOP20</span>
+          <span style={{ fontWeight: 700, fontSize: 8, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.7, marginTop: 2, whiteSpace: "nowrap" }}>
+            Móveis de Valor
+          </span>
+        </a>
+
+        {/* menu: ícone simples, sem recorte nem fundo, direto sobre o azul */}
         <button
           aria-label="Menu"
           aria-expanded={menuAberto}
@@ -98,9 +171,8 @@ export function FormaShapeFull({
           className="flex flex-col items-center justify-center gap-1"
           style={{
             position: "absolute",
-            top: `${MENU_TOP_PCT}%`,
-            left: `${MENU_LEFT_PCT}%`,
-            transform: "translate(-50%, -50%)",
+            top: 24,
+            right: 20,
             width: 32,
             height: 32,
             background: "none",
@@ -110,52 +182,63 @@ export function FormaShapeFull({
             pointerEvents: "auto",
           }}
         >
-          <span className={`block w-4 h-0.5 bg-[#131313] transition-transform ${menuAberto ? "translate-y-[5px] rotate-45" : ""}`} />
-          <span className={`block w-4 h-0.5 bg-[#131313] transition-opacity ${menuAberto ? "opacity-0" : ""}`} />
-          <span className={`block w-4 h-0.5 bg-[#131313] transition-transform ${menuAberto ? "-translate-y-[5px] -rotate-45" : ""}`} />
+          <span className={`block w-4 h-0.5 bg-white transition-transform ${menuAberto ? "translate-y-[5px] rotate-45" : ""}`} />
+          <span className={`block w-4 h-0.5 bg-white transition-opacity ${menuAberto ? "opacity-0" : ""}`} />
+          <span className={`block w-4 h-0.5 bg-white transition-transform ${menuAberto ? "-translate-y-[5px] -rotate-45" : ""}`} />
         </button>
       </div>
 
-      {/* logo mobile: fora do card, solto na margem superior esquerda */}
-      <a
-        href="/"
-        aria-label="TOP20 — Móveis de Valor"
-        className="lg:hidden flex flex-col"
-        style={{
-          position: "absolute",
-          top: 18,
-          left: 16,
-          color: BLACK,
-          textDecoration: "none",
-          lineHeight: 1,
-          userSelect: "none",
-        }}
-      >
-        <span style={{ fontWeight: 900, fontSize: 20, letterSpacing: "-0.03em" }}>TOP20</span>
-        <span style={{ fontWeight: 700, fontSize: 7, letterSpacing: "0.15em", textTransform: "uppercase", opacity: 0.7, marginTop: 2 }}>
-          Móveis de Valor
-        </span>
-      </a>
-
       <style jsx>{`
+        .forma-shape-wrapper {
+          /* flow-root impede o margin do card de colapsar para fora do wrapper,
+             o que desalinharia o frame de referência da logo/menu em 16px */
+          display: flow-root;
+          height: calc(100svh - 20px);
+          min-height: 620px;
+        }
         .forma-frame {
           position: absolute;
           inset: 0;
+        }
+        .forma-card {
+          position: relative;
+          height: 100%;
         }
         .forma-clip-path {
           clip-path: url(#forma-clip-full);
           -webkit-clip-path: url(#forma-clip-full);
         }
+        .forma-content-padding {
+          padding: 60px 80px;
+        }
         @media (max-width: 1023px) {
+          .forma-shape-wrapper {
+            height: auto;
+            min-height: 680px;
+          }
           .forma-frame {
-            top: 56px;
+            top: 16px;
             right: 16px;
             bottom: 16px;
             left: 16px;
+            border-radius: 40px;
+            border-top-left-radius: 0;
+          }
+          .forma-card {
+            height: auto;
+            min-height: 648px;
+            margin: 16px;
+            border-radius: 40px;
+            border-top-left-radius: 0;
           }
           .forma-clip-path {
             clip-path: url(#forma-clip-mobile);
             -webkit-clip-path: url(#forma-clip-mobile);
+            overflow: hidden;
+          }
+          .forma-content-padding {
+            padding: 40px 24px;
+            min-height: 648px;
           }
         }
       `}</style>
@@ -204,9 +287,10 @@ export function FormaShapeFull({
         </span>
       </a>
 
-      {/* seta para baixo na aba inferior: rola até a próxima section */}
+      {/* seta para baixo na aba inferior: rola até a próxima section (só desktop) */}
       <button
         aria-label="Rolar para baixo"
+        className="hidden lg:flex"
         onClick={(e) => {
           const section = e.currentTarget.closest("section");
           section?.nextElementSibling?.scrollIntoView({ behavior: "smooth" });
@@ -221,7 +305,6 @@ export function FormaShapeFull({
           padding: 0,
           color: "#fff",
           cursor: "pointer",
-          display: "flex",
         }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
