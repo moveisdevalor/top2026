@@ -18,9 +18,9 @@ const sugestoesFornecedor = [
 ];
 
 const linksMobile = [
+  { href: "/", label: "Home" },
   { href: "/sobre", label: "Sobre" },
   { href: "/vencedores", label: "Vencedores" },
-  { href: "/#pilares", label: "Pilares" },
   { href: "/#categorias", label: "Categorias" },
   { href: "/#faq", label: "FAQ" },
   { href: "/regulamento", label: "Regulamento" },
@@ -45,17 +45,80 @@ export default function Home() {
     el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
   }
 
+  // arrastar com o mouse/trackpad: o toque já rola nativamente (overflow +
+  // scroll-snap); aqui replicamos o gesto para ponteiro de mouse, desligando o
+  // snap durante o arrasto e realinhando ao slide mais próximo ao soltar.
+  const dragRef = useRef({ startX: 0, startLeft: 0, dragging: false });
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    const el = carouselRef.current;
+    if (!el || e.pointerType !== "mouse" || el.scrollWidth <= el.clientWidth + 1) return;
+    dragRef.current = { startX: e.clientX, startLeft: el.scrollLeft, dragging: true };
+    el.style.scrollSnapType = "none";
+    el.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const el = carouselRef.current;
+    if (!el || !dragRef.current.dragging) return;
+    el.scrollLeft = dragRef.current.startLeft - (e.clientX - dragRef.current.startX);
+  }
+
+  function handlePointerUp() {
+    const el = carouselRef.current;
+    if (!el || !dragRef.current.dragging) return;
+    dragRef.current.dragging = false;
+    el.style.scrollSnapType = "";
+    scrollToSlide(Math.round(el.scrollLeft / el.clientWidth));
+  }
+
   return (
     <main>
       {/* hero: forma azul de largura total; menu e conteúdo vivem dentro dela */}
       <section className="pt-1 pb-16 relative">
-        <FormaShapeFull menuAberto={menuAberto} onMenuClick={() => setMenuAberto(!menuAberto)}>
+        <FormaShapeFull
+          menuAberto={menuAberto}
+          onMenuClick={() => setMenuAberto(!menuAberto)}
+          sideNotches={votando ? undefined : { left: slide > 0, right: slide < 1 }}
+          overlay={
+            !votando ? (
+              <div className="md:hidden">
+                {/* setas do slider: encaixadas nos recortes laterais do card
+                    (fora do clip, senão a parte sobre o recorte sumiria) */}
+                <button
+                  type="button"
+                  aria-label="Slide anterior"
+                  onClick={() => scrollToSlide(slide - 1)}
+                  disabled={slide === 0}
+                  className="absolute z-20 w-9 h-9 flex items-center justify-center text-[#1a4fd4] transition-opacity disabled:opacity-0"
+                  style={{ left: -10, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
+                >
+                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Próximo slide"
+                  onClick={() => scrollToSlide(slide + 1)}
+                  disabled={slide === 1}
+                  className="absolute z-20 w-9 h-9 flex items-center justify-center text-[#1a4fd4] transition-opacity disabled:opacity-0"
+                  style={{ right: -10, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
+                >
+                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M13 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            ) : null
+          }
+        >
           {/* menu nas laterais do recorte superior */}
           <nav className="absolute top-5 left-1/2 -translate-x-1/2 w-full max-w-[1400px] z-20 hidden lg:flex items-center justify-between px-20 pt-4 text-[13px] text-white/85">
             <div className="flex items-center gap-6">
+              <a href="/" className="hover:text-white transition-colors">Home</a>
               <a href="/sobre" className="hover:text-white transition-colors">Sobre</a>
               <a href="/vencedores" className="hover:text-white transition-colors">Vencedores</a>
-              <a href="/#pilares" className="hover:text-white transition-colors">Pilares</a>
             </div>
             <div className="flex items-center gap-5">
               <a href="/#categorias" className="hover:text-white transition-colors">Categorias</a>
@@ -110,7 +173,7 @@ export default function Home() {
               alt=""
               className="absolute w-[92%] max-w-[420px] select-none"
               style={{
-                top: "40%",
+                top: "50%",
                 left: (votando ?? (slide === 0 ? "industria" : "fornecedores")) === "industria" ? "100%" : "0%",
                 transform: "translate(-50%, -50%)",
                 transition: "left 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -132,6 +195,34 @@ export default function Home() {
             +
           </span>
 
+          {/* seletor nomeado do slider — só no mobile, no alto do card (abaixo
+              do recorte da logo), some durante a votação */}
+          <div
+            className="absolute top-16 left-1/2 -translate-x-1/2 z-20 md:hidden"
+            style={{ display: votando ? "none" : undefined }}
+          >
+            <div className="flex items-center gap-1 p-1 rounded-full bg-white/10 border border-white/25 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => scrollToSlide(0)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
+                  slide === 0 ? "bg-white text-[#1a4fd4]" : "text-white/70"
+                }`}
+              >
+                Indústrias
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSlide(1)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
+                  slide === 1 ? "bg-white text-[#1a4fd4]" : "text-white/70"
+                }`}
+              >
+                Fornecedores
+              </button>
+            </div>
+          </div>
+
           {/* colunas: Indústrias × Fornecedores, ancoradas na base — somem ao votar
               (display:none, não apenas opacidade, para não disputar espaço no flex com o painel de voto).
               No mobile viram um slider (scroll-snap horizontal, 1 item por vez);
@@ -143,9 +234,13 @@ export default function Home() {
             <div
               ref={carouselRef}
               onScroll={handleCarouselScroll}
-              className="flex overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-2 md:gap-10 md:overflow-visible md:snap-none items-end"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              className="flex overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing md:cursor-auto md:grid md:grid-cols-2 md:gap-10 md:overflow-visible md:snap-none items-end"
             >
-            <div className="max-w-[420px] w-full shrink-0 snap-center md:w-auto md:shrink text-center md:text-left">
+            <div className="w-full shrink-0 snap-center md:max-w-[420px] md:w-auto md:shrink text-left">
               <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">QUEM TRANSFORMA</p>
               <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4">
                 INDÚSTRIAS
@@ -153,7 +248,7 @@ export default function Home() {
               <p className="text-white/70 text-sm leading-relaxed mb-5">
                 Fábricas que projetam, produzem e entregam o móvel acabado ao mercado final.
               </p>
-              <div className="flex flex-wrap gap-2 mb-6 justify-center md:justify-start">
+              <div className="flex flex-wrap gap-2 mb-6 justify-start">
                 <Tag>SOFAS</Tag>
                 <Tag>RACKS</Tag>
                 <Tag>COLCHÕES</Tag>
@@ -161,7 +256,7 @@ export default function Home() {
                 <Tag>GUARDA-ROUPA</Tag>
                 <Tag>MESAS</Tag>
               </div>
-              <div className="flex items-center gap-3 flex-wrap justify-center md:justify-start">
+              <div className="flex items-center gap-3 flex-wrap justify-start">
                 <button
                   type="button"
                   onClick={() => setVotando("industria")}
@@ -178,7 +273,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="max-w-[420px] w-full shrink-0 snap-center md:w-auto md:shrink md:ml-auto text-center md:text-right">
+            <div className="w-full shrink-0 snap-center md:max-w-[420px] md:w-auto md:shrink md:ml-auto text-right">
               <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">QUEM ABASTECE</p>
               <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4">
                 FORNECEDORES
@@ -186,14 +281,14 @@ export default function Home() {
               <p className="text-white/70 text-sm leading-relaxed mb-5">
                 Quem fornece a matéria-prima, os componentes e a logística que sustentam a produção.
               </p>
-              <div className="flex flex-wrap gap-2 mb-6 justify-center md:justify-end">
+              <div className="flex flex-wrap gap-2 mb-6 justify-end">
                 <Tag>MADEIRA &amp; MDF</Tag>
                 <Tag>FERRAGENS</Tag>
                 <Tag>TECIDOS</Tag>
                 <Tag>TINTAS</Tag>
                 <Tag>ESPUMAS</Tag>
               </div>
-              <div className="flex items-center gap-3 flex-wrap justify-center md:justify-end">
+              <div className="flex items-center gap-3 flex-wrap justify-end">
                 <span className="text-xs font-semibold tracking-wide" style={{ color: "#4aa0c8" }}>
                   Apenas indústrias
                 </span>
@@ -211,45 +306,6 @@ export default function Home() {
             </div>
             </div>
 
-            {/* indicadores + setas do slider — só no mobile */}
-            <div className="flex justify-center items-center gap-4 mt-6 md:hidden">
-              <button
-                type="button"
-                aria-label="Slide anterior"
-                onClick={() => scrollToSlide(slide - 1)}
-                disabled={slide === 0}
-                className="w-9 h-9 rounded-full bg-white/15 border border-white/25 flex items-center justify-center text-white transition-opacity disabled:opacity-30"
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  aria-label="Ver Indústrias"
-                  onClick={() => scrollToSlide(0)}
-                  className={`h-2 rounded-full transition-all ${slide === 0 ? "w-6 bg-white" : "w-2 bg-white/30"}`}
-                />
-                <button
-                  type="button"
-                  aria-label="Ver Fornecedores"
-                  onClick={() => scrollToSlide(1)}
-                  className={`h-2 rounded-full transition-all ${slide === 1 ? "w-6 bg-white" : "w-2 bg-white/30"}`}
-                />
-              </div>
-              <button
-                type="button"
-                aria-label="Próximo slide"
-                onClick={() => scrollToSlide(slide + 1)}
-                disabled={slide === 1}
-                className="w-9 h-9 rounded-full bg-white/15 border border-white/25 flex items-center justify-center text-white transition-opacity disabled:opacity-30"
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
           </div>
 
           {/* formulário de voto: ocupa 70% da tela do lado oposto à cadeira

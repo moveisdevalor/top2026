@@ -480,7 +480,9 @@ export function VoteForm({
           )}
         </div>
 
-        <div>
+        {/* no mobile a lista "Seus votos" só aparece após concluir os 5 votos;
+            no desktop fica sempre visível ao lado do formulário */}
+        <div className={done ? undefined : "hidden lg:block"}>
           <div className={`text-[11px] tracking-[0.25em] font-semibold uppercase mb-4 ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
             Seus votos ({votes.length}/{MAX})
           </div>

@@ -41,17 +41,54 @@ const PATH_MOBILE = [
 // recalcula o path a partir do tamanho real do card: raio do canto (40px,
 // igual ao border-radius) e profundidade do recorte (32px) são fixados em px
 // de tela e convertidos de volta para as unidades da caixa 880×530.
-function buildMobilePath(w: number, h: number) {
-  const rx = 40 / (w / 880);
-  const ry = 40 / (h / 530);
-  const d = 44 / (h / 530); // profundidade do recorte da logo
-  return [
+// recortes laterais das setas do slider: mesmo desenho do recorte da logo
+// (rebaixo reto com transições suaves em S), virado para a borda lateral e
+// centralizado verticalmente no card. Medidas em px de tela.
+const SIDE_NOTCH_DEPTH_PX = 20; // profundidade do rebaixo
+const SIDE_NOTCH_FLAT_PX = 40; // trecho reto (onde a seta fica)
+const SIDE_NOTCH_TRANS_PX = 48; // altura de cada transição em S
+
+function buildMobilePath(
+  w: number,
+  h: number,
+  notches: { left?: boolean; right?: boolean } = {},
+) {
+  const sx = w / 880;
+  const sy = h / 530;
+  const rx = 40 / sx;
+  const ry = 40 / sy;
+  const d = 44 / sy; // profundidade do recorte da logo
+  const D = SIDE_NOTCH_DEPTH_PX / sx;
+  const F = SIDE_NOTCH_FLAT_PX / sy / 2; // metade do trecho reto
+  const T = SIDE_NOTCH_TRANS_PX / sy;
+  const cy = 265; // centro vertical do card
+  const p = [
     `M0 ${d + ry}`,
     `C0 ${d + ry * 0.45} ${rx * 0.45} ${d} ${rx} ${d}`,
     `H350 C400 ${d} 445 0 490 0`,
-    "H880 V530",
-    "H0 Z",
-  ].join(" ");
+    "H880",
+  ];
+  if (notches.right) {
+    // borda direita, descendo (transições com o mesmo padrão do recorte da logo)
+    p.push(
+      `V ${cy - F - T}`,
+      `C 880 ${cy - F - T + 0.36 * T} ${880 - D} ${cy - F - T + 0.68 * T} ${880 - D} ${cy - F}`,
+      `V ${cy + F}`,
+      `C ${880 - D} ${cy + F + 0.32 * T} 880 ${cy + F + 0.64 * T} 880 ${cy + F + T}`,
+    );
+  }
+  p.push("V530 H0");
+  if (notches.left) {
+    // borda esquerda, subindo
+    p.push(
+      `V ${cy + F + T}`,
+      `C 0 ${cy + F + T - 0.36 * T} ${D} ${cy + F + T - 0.68 * T} ${D} ${cy + F}`,
+      `V ${cy - F}`,
+      `C ${D} ${cy - F - 0.32 * T} 0 ${cy - F - 0.64 * T} 0 ${cy - F - T}`,
+    );
+  }
+  p.push("Z");
+  return p.join(" ");
 }
 
 // posição da logo dentro do recorte: horizontal em % (o recorte escala com a
@@ -66,28 +103,46 @@ export function FormaShapeFull({
   children,
   menuAberto,
   onMenuClick,
+  sideNotches,
+  overlay,
 }: {
   children?: React.ReactNode;
   /** Estado do menu mobile (para animar o ícone hambúrguer no recorte). */
   menuAberto?: boolean;
   /** Clique no botão de menu mobile, dentro do recorte. */
   onMenuClick?: () => void;
+  /** Recortes laterais para as setas do slider, por lado (só abaixo de md). */
+  sideNotches?: { left?: boolean; right?: boolean };
+  /** Conteúdo extra no frame não clipado do mobile (ex.: setas nos recortes). */
+  overlay?: React.ReactNode;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   // path estático como fallback (SSR / antes da primeira medição)
   const [mobilePath, setMobilePath] = useState(PATH_MOBILE);
 
+  const notchLeft = !!sideNotches?.left;
+  const notchRight = !!sideNotches?.right;
+
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return;
+    // os recortes das setas só existem enquanto o slider existe (abaixo de md)
+    const mq = window.matchMedia("(max-width: 767px)");
     const ro = new ResizeObserver(() => {
       const w = el.clientWidth;
       const h = el.clientHeight;
-      if (w > 0 && h > 0) setMobilePath(buildMobilePath(w, h));
+      if (w > 0 && h > 0) {
+        setMobilePath(
+          buildMobilePath(w, h, {
+            left: notchLeft && mq.matches,
+            right: notchRight && mq.matches,
+          }),
+        );
+      }
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [notchLeft, notchRight]);
 
   return (
     <div
@@ -186,6 +241,9 @@ export function FormaShapeFull({
           <span className={`block w-4 h-0.5 bg-white transition-opacity ${menuAberto ? "opacity-0" : ""}`} />
           <span className={`block w-4 h-0.5 bg-white transition-transform ${menuAberto ? "-translate-y-[5px] -rotate-45" : ""}`} />
         </button>
+
+        {/* conteúdo extra fora do clip (ex.: setas do slider nos recortes laterais) */}
+        {overlay}
       </div>
 
       <style jsx>{`
