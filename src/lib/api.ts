@@ -5,7 +5,12 @@ export type CreateTopPayload = {
   email:   string;
   panel:   "S" | "N";
   marca:   string;
-  nota:    number;
+  // notas por atributo (5-10); a média é calculada no backend
+  nota_produtos:    number;
+  nota_servicos:    number;
+  nota_atendimento: number;
+  nota_posvenda:    number;
+  nota_marketing:   number;
   top:     number;
   lat?:    string;
   long?:   string;
@@ -65,6 +70,23 @@ export async function getVotesByEmail(email: string, top?: number): Promise<TopV
   if (!res.ok) return [];
   const all = (await res.json()) as TopVote[];
   return top === undefined ? all : all.filter((v) => v.top === top);
+}
+
+export type TopWinner = {
+  id: number;
+  year: number;
+  brand: string;
+  note: number;
+  vote: number;
+  link: string;
+  type: number; // 0 = indústrias, 1 = fornecedores
+};
+
+// Vencedores das edições anteriores (tabela top_winners).
+export async function getTopWinnersList(): Promise<TopWinner[]> {
+  const res = await fetch(`${BASE}/top/winners-list`, { cache: "no-store" });
+  if (!res.ok) return [];
+  return res.json();
 }
 
 export type VoteCounts = {

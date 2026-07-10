@@ -6,11 +6,11 @@ const BLACK = "#131313";
 
 const LINKS_MOBILE = [
   { href: "/", label: "Home" },
-  { href: "/sobre", label: "Sobre" },
-  { href: "/vencedores", label: "Vencedores" },
-  { href: "/#categorias", label: "Categorias" },
+  { href: "/#pilares", label: "Sobre" },
+  { href: "/#vencedores", label: "Vencedores" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/regulamento", label: "Regulamento" },
+  { href: "/#pilares", label: "Regulamento" },
+  { href: "/material", label: "Material de divulgação" },
 ];
 
 /* Menu das páginas internas no modelo do hero (FormaShapeFull): barra azul com
@@ -30,13 +30,13 @@ export function MenuInvertido() {
       <div className="relative max-w-[1400px] mx-auto h-16 px-5 lg:px-8 flex items-center justify-between text-[13px] text-white/85">
         <nav className="hidden lg:flex items-center gap-6">
           <a href="/" className="hover:text-white transition-colors">Home</a>
-          <a href="/sobre" className="hover:text-white transition-colors">Sobre</a>
-          <a href="/vencedores" className="hover:text-white transition-colors">Vencedores</a>
+          <a href="/#pilares" className="hover:text-white transition-colors">Sobre</a>
+          <a href="/#vencedores" className="hover:text-white transition-colors">Vencedores</a>
         </nav>
         <nav className="hidden lg:flex items-center gap-5">
-          <a href="/#categorias" className="hover:text-white transition-colors">Categorias</a>
           <a href="/#faq" className="hover:text-white transition-colors">FAQ</a>
-          <a href="/regulamento" className="hover:text-white transition-colors">Regulamento</a>
+          <a href="/#pilares" className="hover:text-white transition-colors">Regulamento</a>
+          <a href="/material" className="hover:text-white transition-colors">Material</a>
           <div className="flex items-center gap-2">
             <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">

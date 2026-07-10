@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createTopVote, getVotesByEmail } from "@/lib/api";
 import { getLocation, type LocationInfo } from "@/lib/location";
+import { RegulamentoModal } from "@/components/RegulamentoModal";
+import { trackEvent, EV } from "@/lib/analytics";
 
 type Props = {
   area: "industria" | "fornecedores";
@@ -17,6 +19,15 @@ type Vote = { marca: string; nota: number };
 
 const MAX = 5;
 const SCORES = [5, 6, 7, 8, 9, 10];
+
+// Atributos avaliados por marca (nota 5-10 em cada); a média vira a nota.
+const ATRIBUTOS = [
+  { key: "nota_produtos", label: "Qualidade de produtos" },
+  { key: "nota_servicos", label: "Qualidade de serviços" },
+  { key: "nota_atendimento", label: "Qualidade de atendimento" },
+  { key: "nota_posvenda", label: "Qualidade de pós-venda" },
+  { key: "nota_marketing", label: "Marketing e comunicação" },
+] as const;
 const accent = (area: Props["area"]) =>
   area === "industria" ? "#d4a017" : "#4aa0c8";
 // top = 2 quando lojistas votam em indústrias / top = 1 quando indústrias votam em fornecedores
@@ -28,6 +39,23 @@ const SWITCH_KEY = (area: Props["area"]) => `top20:switched:${area}`;
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
 
+// Colapsa espaços repetidos: "Castor   Móveis" -> "Castor Móveis"
+const limpaEspacos = (s: string) => s.trim().replace(/\s+/g, " ");
+
+// Detecta nome com palavra repetida em sequência: "Castor Castor".
+const temPalavraRepetida = (s: string) => {
+  const palavras = norm(limpaEspacos(s)).split(" ").filter(Boolean);
+  return palavras.some((p, i) => i > 0 && p === palavras[i - 1]);
+};
+
+// Detecta tentativa de informar mais de uma marca no mesmo campo:
+// "Castor, Duratex" | "Castor / Duratex" | "Castor + Duratex" | "Castor e Duratex".
+// O "&" grudado ("H&M") e o hífen ("Sherwin-Williams") continuam válidos.
+// Testa o texto cru (sem colapsar espaços), senão uma quebra de linha viraria
+// espaço e "Castor\nDuratex" passaria como se fosse um nome de duas palavras.
+const SEPARADORES = /[,;/\\|\n\r\t]|\s[+&]\s|\se\s/i;
+const temVariasMarcas = (s: string) => SEPARADORES.test(s.trim());
+
 export function VoteForm({
   area,
   voterLabel,
@@ -38,10 +66,13 @@ export function VoteForm({
   const [identified, setIdentified] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [aceite, setAceite] = useState(true);
+  const [regulamentoAberto, setRegulamentoAberto] = useState(false);
 
   const [marca, setMarca] = useState("");
-  const [nota, setNota] = useState<number | null>(null);
+  const [notas, setNotas] = useState<Record<string, number>>({});
   const [votes, setVotes] = useState<Vote[]>([]);
+  const notasCompletas = ATRIBUTOS.every((a) => notas[a.key] != null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -54,10 +85,11 @@ export function VoteForm({
   // rótulo e título no estilo das colunas do hero
   const heroLabel = area === "industria" ? "QUEM TRANSFORMA" : "QUEM ABASTECE";
   const heroTitle = area === "industria" ? "INDÚSTRIAS" : "FORNECEDORES";
+  // o campo coleta o nome do estabelecimento de quem vota (loja ou indústria)
+  const nomeLabel = area === "industria" ? "nome da loja" : "nome da indústria";
 
   const [locStatus, setLocStatus] = useState<"idle" | "pending" | "gps" | "ip-only">("idle");
   const [manualCity, setManualCity] = useState("");
-  const [editingCity, setEditingCity] = useState(false);
 
   // Captura localização (IP + GPS se permitido) uma vez ao montar
   useEffect(() => {
@@ -114,11 +146,15 @@ export function VoteForm({
     const n = nome.trim();
     const em = email.trim();
     if (!n || !em) {
-      setError("Preencha nome e email.");
+      setError(`Preencha o ${nomeLabel} e email.`);
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
       setError("Email inválido.");
+      return;
+    }
+    if (!aceite) {
+      setError("É preciso aceitar o regulamento para votar.");
       return;
     }
     setSubmitting(true);
@@ -131,16 +167,28 @@ export function VoteForm({
       localStorage.setItem(STORAGE_KEY(area), JSON.stringify({ nome: n, email: em }));
       setIdentified(true);
       setSubmitting(false);
+      trackEvent(EV.voteId, area);
     }
   };
 
   const addVote = async () => {
     setError("");
-    if (!marca.trim()) return setError("Informe a marca.");
-    if (nota === null) return setError("Selecione uma nota.");
-    if (votes.some((v) => norm(v.marca) === norm(marca))) {
+    const marcaLimpa = limpaEspacos(marca);
+    if (!marcaLimpa) return setError("Informe a marca.");
+    if (temVariasMarcas(marcaLimpa)) {
+      return setError("Informe apenas uma marca por vez.");
+    }
+    if (temPalavraRepetida(marcaLimpa)) {
+      return setError("Nome de marca inválido: há uma palavra repetida.");
+    }
+    if (!notasCompletas) return setError("Dê uma nota para cada atributo.");
+    if (votes.some((v) => norm(v.marca) === norm(marcaLimpa))) {
       return setError("Você já votou nesta marca.");
     }
+
+    const media = Math.round(
+      ATRIBUTOS.reduce((s, a) => s + notas[a.key], 0) / ATRIBUTOS.length,
+    );
 
     setSubmitting(true);
     try {
@@ -152,8 +200,12 @@ export function VoteForm({
         loja:  nome.trim(),
         email: email.trim(),
         panel: switched ? "S" : "N",
-        marca: marca.trim(),
-        nota,
+        marca: marcaLimpa,
+        nota_produtos:    notas.nota_produtos,
+        nota_servicos:    notas.nota_servicos,
+        nota_atendimento: notas.nota_atendimento,
+        nota_posvenda:    notas.nota_posvenda,
+        nota_marketing:   notas.nota_marketing,
         top:   TOP_ID(area),
         lat:   loc.lat,
         long:  loc.long,
@@ -164,9 +216,12 @@ export function VoteForm({
 
       if (switched) localStorage.removeItem(SWITCH_KEY(area));
 
-      setVotes([...votes, { marca: marca.trim(), nota }]);
+      const novos = [...votes, { marca: marcaLimpa, nota: media }];
+      setVotes(novos);
       setMarca("");
-      setNota(null);
+      setNotas({});
+      trackEvent(EV.voteCast, area);
+      if (novos.length >= MAX) trackEvent(EV.voteDone, area);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao enviar voto.");
     } finally {
@@ -182,7 +237,7 @@ export function VoteForm({
     setEmail("");
     setVotes([]);
     setMarca("");
-    setNota(null);
+    setNotas({});
     setError("");
   };
 
@@ -205,39 +260,7 @@ export function VoteForm({
 
   return (
     <section className="max-w-[1100px] mx-auto px-4 sm:px-6 md:px-10 py-6 sm:py-12 md:py-16">
-      {identified && !done && (
-        <div className="lg:hidden mb-5">
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-semibold ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
-              Voto {votes.length + 1} de {MAX}
-            </span>
-            <span className="text-xs font-semibold" style={{ color: onDark ? "#fff" : color }}>
-              {votes.length}/{MAX}
-            </span>
-          </div>
-          <div className="flex gap-1.5">
-            {Array.from({ length: MAX }).map((_, i) => (
-              <div
-                key={i}
-                className="flex-1 h-1.5 rounded-full transition-colors"
-                style={{
-                  background:
-                    i < votes.length
-                      ? color
-                      : i === votes.length
-                      ? onDark
-                        ? "#fff"
-                        : "var(--color-ink)"
-                      : onDark
-                      ? "rgba(255,255,255,0.25)"
-                      : "var(--color-line)",
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 sm:gap-10 items-start">
+      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 sm:gap-10 items-center">
         <div>
           {done ? (
             <div
@@ -268,17 +291,29 @@ export function VoteForm({
                 Sua participação contribui decisivamente para valorizar marcas
                 que merecem reconhecimento pela qualidade de produtos e serviços.
               </p>
-              <a
-                href="/"
-                className={
-                  onDark
-                    ? "mt-6 inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
-                    : "mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-                }
-              >
-                Voltar à home
-                {onDark && <ArrowIcon />}
-              </a>
+              <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <a
+                  href="/comemoracao"
+                  className={
+                    onDark
+                      ? "inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
+                      : "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                  }
+                >
+                  Ver a última edição
+                  {onDark && <ArrowIcon />}
+                </a>
+                <a
+                  href="/"
+                  className={
+                    onDark
+                      ? "inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:border-white hover:bg-white/10 transition-colors"
+                      : "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-[var(--color-line)] text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-ink)] transition-colors"
+                  }
+                >
+                  Voltar à home
+                </a>
+              </div>
             </div>
           ) : !identified ? (
             <form
@@ -291,7 +326,7 @@ export function VoteForm({
             >
               {onDark && (
                 <div>
-                  <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">{heroLabel}</p>
+                  <p className="text-[11px] tracking-[0.3em] text-white/60 mb-1">{heroLabel}</p>
                   <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em]">
                     {heroTitle}
                   </h2>
@@ -304,12 +339,12 @@ export function VoteForm({
                     : "text-xs font-semibold text-[var(--color-muted)] leading-relaxed"
                 }
               >
-                Informe seu nome e email para começar. Apenas {voterLabel.toLowerCase()}s podem votar.
+                Informe o {nomeLabel} e email para começar. Apenas {voterLabel.toLowerCase()}s podem votar.
               </p>
               <Input
                 value={nome}
                 onChange={setNome}
-                placeholder="Seu nome"
+                placeholder={area === "industria" ? "Nome da loja" : "Nome da indústria"}
                 dark={onDark}
               />
               <Input
@@ -319,6 +354,31 @@ export function VoteForm({
                 placeholder="Email"
                 dark={onDark}
               />
+              <p className={`text-[11px] leading-relaxed ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
+                Utilizaremos este email apenas para, se necessário, confirmar os dados do seu voto.
+              </p>
+              <label className={`flex items-start gap-2.5 text-xs leading-relaxed cursor-pointer select-none ${onDark ? "text-white/80" : "text-[var(--color-muted)]"}`}>
+                <input
+                  type="checkbox"
+                  checked={aceite}
+                  onChange={(e) => {
+                    setAceite(e.target.checked);
+                    setError("");
+                  }}
+                  className="mt-0.5 w-4 h-4 shrink-0 accent-[#1a4fd4] cursor-pointer"
+                />
+                <span>
+                  Li e aceito o{" "}
+                  <button
+                    type="button"
+                    onClick={() => setRegulamentoAberto(true)}
+                    className={`underline underline-offset-2 font-semibold ${onDark ? "text-white hover:text-white/80" : "text-[var(--color-ink)]"}`}
+                  >
+                    regulamento
+                  </button>{" "}
+                  do prêmio TOP 20.
+                </span>
+              </label>
               {error && <p className={`text-xs ${onDark ? "text-red-200" : "text-red-600"}`}>{error}</p>}
               <button
                 type="submit"
@@ -342,7 +402,7 @@ export function VoteForm({
             >
               {onDark && (
                 <div>
-                  <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">{heroLabel}</p>
+                  <p className="text-[11px] tracking-[0.3em] text-white/60 mb-1">{heroLabel}</p>
                   <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em]">
                     {heroTitle}
                   </h2>
@@ -352,41 +412,6 @@ export function VoteForm({
                 <div className={`space-y-1 text-xs flex-1 ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
                   <p><strong className={onDark ? "text-white" : "text-[var(--color-ink)]"}>{nome}</strong></p>
                   <p>{email}</p>
-                  <div className="flex items-center gap-1.5 pt-1 flex-wrap">
-                    <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z" />
-                      <circle cx="12" cy="9" r="2.5" fill="currentColor" />
-                    </svg>
-                    {editingCity ? (
-                      <input
-                        autoFocus
-                        type="text"
-                        value={manualCity}
-                        onChange={(e) => setManualCity(e.target.value)}
-                        onBlur={() => setEditingCity(false)}
-                        onKeyDown={(e) => e.key === "Enter" && setEditingCity(false)}
-                        placeholder="Sua cidade"
-                        className={
-                          onDark
-                            ? "text-xs px-2 py-1 rounded bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/70"
-                            : "text-xs px-2 py-1 border border-[var(--color-line)] rounded text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-ink)]"
-                        }
-                      />
-                    ) : (
-                      <>
-                        <span className={`font-medium ${onDark ? "text-white" : "text-[var(--color-ink)]"}`}>
-                          {manualCity || "Localização não detectada"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setEditingCity(true)}
-                          className={`underline underline-offset-2 ${onDark ? "hover:text-white" : "hover:text-[var(--color-ink)]"}`}
-                        >
-                          alterar
-                        </button>
-                      </>
-                    )}
-                  </div>
                 </div>
                 <button
                   type="button"
@@ -400,10 +425,6 @@ export function VoteForm({
                   Trocar
                 </button>
               </div>
-
-              <p className={`text-xs font-semibold ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
-                Você ainda pode indicar {remaining} marca{remaining !== 1 && "s"}, com nota entre 5 e 10.
-              </p>
 
               <div className="relative">
                 <Input
@@ -430,59 +451,85 @@ export function VoteForm({
                     ))}
                   </ul>
                 )}
+                <p className={`mt-2 text-[10px] leading-snug ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
+                  Você ainda pode indicar {remaining} marca{remaining !== 1 && "s"}.
+                </p>
               </div>
-
-              <div>
-                <div className={`text-[11px] tracking-[0.2em] font-semibold uppercase mb-2 ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
-                  Nota
-                </div>
-                <div className="grid grid-cols-6 gap-2 sm:flex sm:flex-wrap">
-                  {SCORES.map((s) => {
-                    const active = nota === s;
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setNota(s)}
-                        className={`h-12 sm:h-11 sm:w-11 rounded-full text-base sm:text-sm font-bold transition-colors ${
-                          active
-                            ? "text-white"
-                            : onDark
-                            ? "text-white/85 border border-white/30 hover:border-white hover:text-white"
-                            : "text-[var(--color-muted)] border border-[var(--color-line)] hover:border-[var(--color-ink)] hover:text-[var(--color-ink)]"
-                        }`}
-                        style={active ? { background: color } : undefined}
-                      >
-                        {s}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {error && <p className={`text-xs ${onDark ? "text-red-200" : "text-red-600"}`}>{error}</p>}
-
-              <button
-                type="button"
-                onClick={addVote}
-                disabled={submitting}
-                className={
-                  onDark
-                    ? heroPillClass
-                    : "w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
-                }
-              >
-                {submitting ? "Enviando..." : "Próximo"}
-                {!submitting && onDark && <ArrowIcon />}
-                {!submitting && !onDark && "→"}
-              </button>
             </div>
           )}
         </div>
 
-        {/* no mobile a lista "Seus votos" só aparece após concluir os 5 votos;
-            no desktop fica sempre visível ao lado do formulário */}
-        <div className={done ? undefined : "hidden lg:block"}>
+        {/* Durante a votação esta coluna mostra os atributos (no desktop fica ao
+            lado do formulário; no mobile o grid colapsa e ela vem abaixo).
+            "Seus votos" aparece antes de identificar e ao concluir os 5 votos. */}
+        <div className={identified ? undefined : "hidden lg:block"}>
+          {identified && !done ? (
+            <div className="space-y-5">
+            <div className="space-y-3">
+              <div className={`flex items-center justify-between text-[11px] tracking-[0.2em] font-semibold uppercase ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
+                <span>Avalie cada atributo</span>
+                <span className="tracking-normal normal-case">5 a 10</span>
+              </div>
+              {ATRIBUTOS.map((atr) => {
+                const val = notas[atr.key];
+                return (
+                  <div key={atr.key} className="flex items-center gap-2 sm:gap-3">
+                    <div className={`w-[142px] sm:w-[180px] shrink-0 text-[11px] sm:text-[13px] leading-tight font-medium ${onDark ? "text-white/85" : "text-[var(--color-ink)]"}`}>
+                      {atr.label}
+                    </div>
+                    <div
+                      className={`flex flex-1 min-w-0 rounded-full overflow-hidden border ${
+                        onDark ? "border-white/25" : "border-[var(--color-line)]"
+                      }`}
+                    >
+                      {SCORES.map((s) => {
+                        const active = val === s;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              setNotas((p) => ({ ...p, [atr.key]: s }));
+                              setError("");
+                            }}
+                            className={`flex-1 h-8 text-[11px] sm:text-xs font-bold transition-colors ${
+                              active
+                                ? "text-white"
+                                : onDark
+                                ? "text-white/70 hover:text-white hover:bg-white/10"
+                                : "text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-soft)]"
+                            } ${s !== SCORES[0] ? (onDark ? "border-l border-white/15" : "border-l border-[var(--color-line)]") : ""}`}
+                            style={active ? { background: color } : undefined}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {error && <p className={`text-xs ${onDark ? "text-red-200" : "text-red-600"}`}>{error}</p>}
+
+            <button
+              type="button"
+              onClick={addVote}
+              disabled={submitting}
+              className={
+                onDark
+                  ? heroPillClass
+                  : "w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+              }
+            >
+              {submitting ? "Enviando..." : "Próximo"}
+              {!submitting && onDark && <ArrowIcon />}
+              {!submitting && !onDark && "→"}
+            </button>
+            </div>
+          ) : (
+          <>
           <div className={`text-[11px] tracking-[0.25em] font-semibold uppercase mb-4 ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
             Seus votos ({votes.length}/{MAX})
           </div>
@@ -551,8 +598,14 @@ export function VoteForm({
             20 marcas mais bem avaliadas e será divulgado na edição da revista
             MÓVEIS DE VALOR.
           </p>
+          </>
+          )}
         </div>
       </div>
+
+      {regulamentoAberto && (
+        <RegulamentoModal area={area} onClose={() => setRegulamentoAberto(false)} />
+      )}
     </section>
   );
 }

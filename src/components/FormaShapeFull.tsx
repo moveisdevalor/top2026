@@ -44,7 +44,7 @@ const PATH_MOBILE = [
 // recortes laterais das setas do slider: mesmo desenho do recorte da logo
 // (rebaixo reto com transições suaves em S), virado para a borda lateral e
 // centralizado verticalmente no card. Medidas em px de tela.
-const SIDE_NOTCH_DEPTH_PX = 20; // profundidade do rebaixo
+const SIDE_NOTCH_DEPTH_PX = 30; // profundidade do rebaixo
 const SIDE_NOTCH_FLAT_PX = 40; // trecho reto (onde a seta fica)
 const SIDE_NOTCH_TRANS_PX = 48; // altura de cada transição em S
 
@@ -105,6 +105,7 @@ export function FormaShapeFull({
   onMenuClick,
   sideNotches,
   overlay,
+  compact = false,
 }: {
   children?: React.ReactNode;
   /** Estado do menu mobile (para animar o ícone hambúrguer no recorte). */
@@ -115,6 +116,8 @@ export function FormaShapeFull({
   sideNotches?: { left?: boolean; right?: boolean };
   /** Conteúdo extra no frame não clipado do mobile (ex.: setas nos recortes). */
   overlay?: React.ReactNode;
+  /** Altura reduzida (páginas internas), em vez de ocupar a tela toda. */
+  compact?: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   // path estático como fallback (SSR / antes da primeira medição)
@@ -146,7 +149,7 @@ export function FormaShapeFull({
 
   return (
     <div
-      className="forma-shape-wrapper"
+      className={`forma-shape-wrapper${compact ? " forma-shape-compact" : ""}`}
       style={{
         position: "relative",
         width: "100%",
@@ -245,61 +248,6 @@ export function FormaShapeFull({
         {/* conteúdo extra fora do clip (ex.: setas do slider nos recortes laterais) */}
         {overlay}
       </div>
-
-      <style jsx>{`
-        .forma-shape-wrapper {
-          /* flow-root impede o margin do card de colapsar para fora do wrapper,
-             o que desalinharia o frame de referência da logo/menu em 16px */
-          display: flow-root;
-          height: calc(100svh - 20px);
-          min-height: 620px;
-        }
-        .forma-frame {
-          position: absolute;
-          inset: 0;
-        }
-        .forma-card {
-          position: relative;
-          height: 100%;
-        }
-        .forma-clip-path {
-          clip-path: url(#forma-clip-full);
-          -webkit-clip-path: url(#forma-clip-full);
-        }
-        .forma-content-padding {
-          padding: 60px 80px;
-        }
-        @media (max-width: 1023px) {
-          .forma-shape-wrapper {
-            height: auto;
-            min-height: 680px;
-          }
-          .forma-frame {
-            top: 16px;
-            right: 16px;
-            bottom: 16px;
-            left: 16px;
-            border-radius: 40px;
-            border-top-left-radius: 0;
-          }
-          .forma-card {
-            height: auto;
-            min-height: 648px;
-            margin: 16px;
-            border-radius: 40px;
-            border-top-left-radius: 0;
-          }
-          .forma-clip-path {
-            clip-path: url(#forma-clip-mobile);
-            -webkit-clip-path: url(#forma-clip-mobile);
-            overflow: hidden;
-          }
-          .forma-content-padding {
-            padding: 40px 24px;
-            min-height: 648px;
-          }
-        }
-      `}</style>
 
       {/* logo na abertura superior — desktop: centralizado no recorte */}
       <a

@@ -123,6 +123,79 @@ img, svg { max-width: 100%; height: auto; }
   margin: 0;
   padding: 0;
 }
+/* FormaShapeFull: estilos no CSS global (e não em styled-jsx) para saírem no
+   HTML do servidor — evita o flash de layout desconfigurado no carregamento. */
+.forma-shape-wrapper {
+  /* flow-root impede o margin do card de colapsar para fora do wrapper,
+     o que desalinharia o frame de referência da logo/menu em 16px */
+  display: flow-root;
+  height: calc(100svh - 20px);
+  min-height: 620px;
+}
+.forma-frame {
+  position: absolute;
+  inset: 0;
+}
+.forma-card {
+  position: relative;
+  height: 100%;
+}
+.forma-clip-path {
+  clip-path: url(#forma-clip-full);
+  -webkit-clip-path: url(#forma-clip-full);
+}
+.forma-content-padding {
+  padding: 60px 80px;
+}
+@media (max-width: 1023px) {
+  .forma-shape-wrapper {
+    height: auto;
+    /* acompanha a altura da tela; cresce se o conteúdo (ex.: voto) exigir */
+    min-height: calc(100svh - 8px);
+  }
+  .forma-frame {
+    top: 4px;
+    right: 4px;
+    bottom: 4px;
+    left: 4px;
+    border-radius: 32px;
+    border-top-left-radius: 0;
+  }
+  .forma-card {
+    height: auto;
+    min-height: calc(100svh - 8px);
+    margin: 4px;
+    border-radius: 32px;
+    border-top-left-radius: 0;
+  }
+  .forma-clip-path {
+    clip-path: url(#forma-clip-mobile);
+    -webkit-clip-path: url(#forma-clip-mobile);
+    overflow: hidden;
+  }
+  .forma-content-padding {
+    padding: 32px 16px;
+    min-height: calc(100svh - 8px);
+  }
+}
+
+/* Variante compacta (páginas internas): hero mais baixo, não ocupa a tela toda. */
+.forma-shape-compact {
+  height: min(560px, calc(100svh - 20px));
+  min-height: 460px;
+}
+@media (max-width: 1023px) {
+  .forma-shape-compact,
+  .forma-shape-compact .forma-card,
+  .forma-shape-compact .forma-content-padding {
+    min-height: 0;
+  }
+  .forma-shape-compact .forma-content-padding {
+    padding-top: 28px;
+    padding-bottom: 40px;
+  }
+}
+
 .flag .logo p span{
   font-weight: bold;
   margin: 0;

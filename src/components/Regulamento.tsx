@@ -96,12 +96,6 @@ export function Regulamento({ area, voterLabel, brandLabel, data }: Props) {
               <path d="M5 12h14M13 5l7 7-7 7" />
             </svg>
           </a>
-          <a
-            href="/regulamento"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-[var(--color-line)] text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-primary)] transition-colors bg-white"
-          >
-            Outro regulamento
-          </a>
         </div>
       </div>
     </section>

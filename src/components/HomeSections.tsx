@@ -5,11 +5,23 @@
    As faixas alternam branco/cinza, conectadas pelo divisor de aba central
    (mesma curva da base do hero). */
 
+import { useEffect, useState } from "react";
 import { GRADIENTE, AZUL, CINZA, Label, PillAzul, PillBranco, ChipAzulClaro } from "./DesignSystem";
+import { RegulamentoModal } from "./RegulamentoModal";
+import { Ranking, SeletorAno, useEdicoes } from "./Rankings";
+import { getVoteCounts, type VoteCounts } from "@/lib/api";
 
 /* Divisor de faixa: a cor da seção anterior "pinga" sobre a atual com a
    mesma aba convexa da base do hero; a seta (opcional) rola até a seção. */
-export function Divisor({ corAnterior, comSeta = true }: { corAnterior: string; comSeta?: boolean }) {
+export function Divisor({
+  corAnterior,
+  comSeta = true,
+  corSeta = AZUL,
+}: {
+  corAnterior: string;
+  comSeta?: boolean;
+  corSeta?: string;
+}) {
   return (
     <div className="relative">
       <svg viewBox="0 0 880 29" preserveAspectRatio="none" className="block w-full h-12" aria-hidden="true">
@@ -20,7 +32,7 @@ export function Divisor({ corAnterior, comSeta = true }: { corAnterior: string; 
           aria-label="Rolar até a seção"
           onClick={(e) => e.currentTarget.closest("section, footer")?.scrollIntoView({ behavior: "smooth" })}
           className="absolute left-1/2 top-3 -translate-x-1/2 flex bg-transparent border-none p-0 cursor-pointer"
-          style={{ color: AZUL }}
+          style={{ color: corSeta }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 5v14M5 12l7 7 7-7" />
@@ -31,8 +43,48 @@ export function Divisor({ corAnterior, comSeta = true }: { corAnterior: string; 
   );
 }
 
+/* ── NÚMEROS ── */
+/* Totais de votos aprovados da edição atual, direto da API (/top/counts). */
+export function Numeros() {
+  const [counts, setCounts] = useState<VoteCounts | null>(null);
+
+  useEffect(() => {
+    getVoteCounts(1).then(setCounts);
+  }, []);
+
+  const fmt = (n: number) => n.toLocaleString("pt-BR");
+  const stats = [
+    { valor: counts ? fmt(counts.total) : "—", label: "votos computados" },
+    { valor: counts ? fmt(counts.industria) : "—", label: "votos em indústrias" },
+    { valor: counts ? fmt(counts.fornecedores) : "—", label: "votos em fornecedores" },
+  ];
+
+  return (
+    <section id="numeros" className="px-4 sm:px-6 md:px-10 pb-16 md:pb-20">
+      <div className="max-w-[1400px] mx-auto text-center">
+        <Label center>OS NÚMEROS</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 max-w-[900px] mx-auto">
+          {stats.map((s) => (
+            <div key={s.label}>
+              <div
+                className="font-black text-4xl sm:text-5xl md:text-6xl tracking-[-0.03em]"
+                style={{ color: AZUL }}
+              >
+                {s.valor}
+              </div>
+              <p className="mt-2 text-sm text-[var(--color-muted)]">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ── PILARES ── */
 export function Pilares() {
+  const [regulamento, setRegulamento] = useState<"industria" | "fornecedores" | null>(null);
+
   return (
     <section id="pilares" className="px-4 sm:px-6 md:px-10 py-16 md:py-24">
       <div className="max-w-[820px] mx-auto text-center">
@@ -45,10 +97,27 @@ export function Pilares() {
           está na linha de frente. Ser TOP 20 é mais do que ser lembrado: é ter a confiança e o
           respeito de todo o setor.
         </p>
-        <div className="mt-8 flex justify-center">
-          <PillAzul href="/sobre">Saiba mais</PillAzul>
+        <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => setRegulamento("industria")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-line)] px-6 py-3 text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+          >
+            Regulamento Indústria
+          </button>
+          <button
+            type="button"
+            onClick={() => setRegulamento("fornecedores")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-line)] px-6 py-3 text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+          >
+            Regulamento Fornecedor
+          </button>
         </div>
       </div>
+
+      {regulamento && (
+        <RegulamentoModal area={regulamento} onClose={() => setRegulamento(null)} />
+      )}
     </section>
   );
 }
@@ -130,12 +199,79 @@ function CardCategoria(props: {
   );
 }
 
+/* ── VENCEDORES (por ano) ── */
+export function Vencedores() {
+  const edicoes = useEdicoes();
+  const [ano, setAno] = useState<number | null>(null);
+  const edicao = edicoes.find((e) => e.ano === ano) ?? edicoes[0];
+  // Até 2021 o prêmio não tinha categoria de fornecedores: mostra só indústrias.
+  const temFornecedores = edicao.fornecedores.length > 0;
+
+  return (
+    // full-bleed como o hero; a faixa final sólida (#0d2fa6) garante que a aba
+    // do Divisor da seção seguinte case exatamente com a cor da base
+    <section
+      id="vencedores"
+      className="text-white"
+      style={{
+        background: `linear-gradient(to top, #0d2fa6 0, #0d2fa6 60px, rgba(13,47,166,0) 260px), ${GRADIENTE}`,
+      }}
+    >
+      <Divisor corAnterior="#ffffff" />
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-8 pb-16 md:pb-24">
+        <div className="text-center mb-10">
+          <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">VENCEDORES</p>
+          <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08]">
+            As marcas mais admiradas, <span style={{ color: "#7cc4e8" }}>ano a ano.</span>
+          </h2>
+        </div>
+
+        <SeletorAno anos={edicoes.map((e) => e.ano)} ano={edicao.ano} onChange={setAno} onDark />
+
+        <div
+          className={
+            temFornecedores
+              ? "grid lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-0 lg:divide-x lg:divide-white/15"
+              : "max-w-[720px] mx-auto"
+          }
+        >
+          <div className={temFornecedores ? "lg:pr-12" : undefined}>
+            <Ranking
+              label="QUEM TRANSFORMA"
+              title="indústria"
+              accent="#d4a017"
+              items={edicao.industrias}
+              onDark
+            />
+          </div>
+          {temFornecedores && (
+            <div className="lg:pl-12 border-t lg:border-t-0 border-white/15 pt-10 sm:pt-12 lg:pt-0">
+              <Ranking
+                label="QUEM ABASTECE"
+                title="fornecedores"
+                accent="#7cc4e8"
+                items={edicao.fornecedores}
+                onDark
+              />
+            </div>
+          )}
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
 /* ── FAQ ── */
 export function Faq() {
   const items = [
     {
       q: "Por que votar no prêmio TOP 20?",
       a: "TOP é quem entrega o que promete — e um pouco mais. Vamos reconhecer as marcas que unem produto, serviço e relacionamento em uma entrega de valor contínua. Não se trata de ser perfeito, mas de manter uma cultura de melhoria constante e de compromisso com o parceiro de negócios.",
+    },
+    {
+      q: "Como faço para minha marca participar?",
+      a: "Não existe inscrição, e é justamente aí que está o valor. No TOP 20, ninguém se candidata: é indicado. Toda marca do setor já está elegível, e entra no ranking no instante em que alguém se lembra dela espontaneamente na hora de votar. Lojistas indicam indústrias; indústrias indicam fornecedores. O que coloca uma marca aqui não é um formulário, é a relação construída dia após dia: produto, serviço, atendimento, pós-venda e parceria. A melhor forma de participar, portanto, é seguir entregando valor. O reconhecimento vem de quem trabalha ao seu lado.",
     },
     {
       q: "Quem pode votar nos melhores fornecedores?",
@@ -157,7 +293,7 @@ export function Faq() {
 
   return (
     <section id="faq" style={{ background: CINZA }}>
-      <Divisor corAnterior="#ffffff" />
+      <Divisor corAnterior="#0d2fa6" corSeta="#ffffff" />
       <div className="px-4 sm:px-6 md:px-10 pt-8 pb-16 md:pb-24">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_2fr] gap-10 sm:gap-12">
         <div>
@@ -166,7 +302,7 @@ export function Faq() {
             Perguntas frequentes
           </h2>
           <div className="mt-8">
-            <PillAzul href="/regulamento">Regulamento</PillAzul>
+            <PillAzul href="/#pilares">Regulamento</PillAzul>
           </div>
         </div>
 
@@ -224,7 +360,7 @@ export function Cta() {
         <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
           <PillBranco href="/industria">Votar agora</PillBranco>
           <a
-            href="/regulamento"
+            href="/#pilares"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold hover:border-white hover:bg-white/10 transition-colors"
           >
             Regulamento
@@ -282,10 +418,11 @@ export function Footer() {
           <div>
             <h4 className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-5">Navegação</h4>
             <ul className="space-y-2 text-sm text-white/85">
-              <li><a href="/sobre" className="hover:text-white transition-colors">Sobre</a></li>
-              <li><a href="/vencedores" className="hover:text-white transition-colors">Vencedores</a></li>
+              <li><a href="/#pilares" className="hover:text-white transition-colors">Sobre</a></li>
+              <li><a href="/#vencedores" className="hover:text-white transition-colors">Vencedores</a></li>
               <li><a href="/#faq" className="hover:text-white transition-colors">FAQ</a></li>
-              <li><a href="/regulamento" className="hover:text-white transition-colors">Regulamento</a></li>
+              <li><a href="/#pilares" className="hover:text-white transition-colors">Regulamento</a></li>
+              <li><a href="/material" className="hover:text-white transition-colors">Material de divulgação</a></li>
             </ul>
           </div>
         </div>

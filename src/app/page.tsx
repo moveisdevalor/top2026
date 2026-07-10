@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import { FormaShapeFull } from "@/components/FormaShapeFull";
-import { Pilares, Faq, Cta, Footer } from "@/components/HomeSections";
+import { Numeros, Pilares, Vencedores, Faq, Footer } from "@/components/HomeSections";
 import { VoteForm } from "@/components/VoteForm";
+import { trackEvent, EV } from "@/lib/analytics";
 
 const sugestoesIndustria = [
   "Móveis Alpha", "Lopas", "Henn", "Madesa", "Kappesberg", "Politorno",
@@ -19,11 +20,11 @@ const sugestoesFornecedor = [
 
 const linksMobile = [
   { href: "/", label: "Home" },
-  { href: "/sobre", label: "Sobre" },
-  { href: "/vencedores", label: "Vencedores" },
-  { href: "/#categorias", label: "Categorias" },
+  { href: "/#pilares", label: "Sobre" },
+  { href: "/#vencedores", label: "Vencedores" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/regulamento", label: "Regulamento" },
+  { href: "/#pilares", label: "Regulamento" },
+  { href: "/material", label: "Material de divulgação" },
 ];
 
 export default function Home() {
@@ -46,28 +47,38 @@ export default function Home() {
   }
 
   // arrastar com o mouse/trackpad: o toque já rola nativamente (overflow +
-  // scroll-snap); aqui replicamos o gesto para ponteiro de mouse, desligando o
-  // snap durante o arrasto e realinhando ao slide mais próximo ao soltar.
-  const dragRef = useRef({ startX: 0, startLeft: 0, dragging: false });
+  // scroll-snap); aqui replicamos o gesto para ponteiro de mouse. O arrasto só
+  // é engatado depois de o ponteiro se mover alguns pixels — capturar o
+  // ponteiro já no pointerdown redirecionaria o pointerup para o carrossel e
+  // engoliria o click dos botões dentro dele (ex.: "Votar").
+  const dragRef = useRef({ startX: 0, startLeft: 0, armed: false, dragging: false });
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     const el = carouselRef.current;
     if (!el || e.pointerType !== "mouse" || el.scrollWidth <= el.clientWidth + 1) return;
-    dragRef.current = { startX: e.clientX, startLeft: el.scrollLeft, dragging: true };
-    el.style.scrollSnapType = "none";
-    el.setPointerCapture(e.pointerId);
+    dragRef.current = { startX: e.clientX, startLeft: el.scrollLeft, armed: true, dragging: false };
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     const el = carouselRef.current;
-    if (!el || !dragRef.current.dragging) return;
-    el.scrollLeft = dragRef.current.startLeft - (e.clientX - dragRef.current.startX);
+    const d = dragRef.current;
+    if (!el || !d.armed) return;
+    if (!d.dragging) {
+      if (Math.abs(e.clientX - d.startX) < 6) return;
+      d.dragging = true;
+      el.style.scrollSnapType = "none";
+      el.setPointerCapture(e.pointerId);
+    }
+    el.scrollLeft = d.startLeft - (e.clientX - d.startX);
   }
 
   function handlePointerUp() {
     const el = carouselRef.current;
-    if (!el || !dragRef.current.dragging) return;
-    dragRef.current.dragging = false;
+    const d = dragRef.current;
+    if (!el || !d.armed) return;
+    d.armed = false;
+    if (!d.dragging) return;
+    d.dragging = false;
     el.style.scrollSnapType = "";
     scrollToSlide(Math.round(el.scrollLeft / el.clientWidth));
   }
@@ -75,7 +86,7 @@ export default function Home() {
   return (
     <main>
       {/* hero: forma azul de largura total; menu e conteúdo vivem dentro dela */}
-      <section className="pt-1 pb-16 relative">
+      <section className="pt-1 pb-16 relative overflow-x-clip">
         <FormaShapeFull
           menuAberto={menuAberto}
           onMenuClick={() => setMenuAberto(!menuAberto)}
@@ -91,7 +102,7 @@ export default function Home() {
                   onClick={() => scrollToSlide(slide - 1)}
                   disabled={slide === 0}
                   className="absolute z-20 w-9 h-9 flex items-center justify-center text-[#1a4fd4] transition-opacity disabled:opacity-0"
-                  style={{ left: -10, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
+                  style={{ left: -3, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -103,7 +114,7 @@ export default function Home() {
                   onClick={() => scrollToSlide(slide + 1)}
                   disabled={slide === 1}
                   className="absolute z-20 w-9 h-9 flex items-center justify-center text-[#1a4fd4] transition-opacity disabled:opacity-0"
-                  style={{ right: -10, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
+                  style={{ right: -3, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 5l7 7-7 7" />
@@ -117,13 +128,13 @@ export default function Home() {
           <nav className="absolute top-5 left-1/2 -translate-x-1/2 w-full max-w-[1400px] z-20 hidden lg:flex items-center justify-between px-20 pt-4 text-[13px] text-white/85">
             <div className="flex items-center gap-6">
               <a href="/" className="hover:text-white transition-colors">Home</a>
-              <a href="/sobre" className="hover:text-white transition-colors">Sobre</a>
-              <a href="/vencedores" className="hover:text-white transition-colors">Vencedores</a>
+              <a href="/#pilares" className="hover:text-white transition-colors">Sobre</a>
+              <a href="/#vencedores" className="hover:text-white transition-colors">Vencedores</a>
             </div>
             <div className="flex items-center gap-5">
-              <a href="/#categorias" className="hover:text-white transition-colors">Categorias</a>
               <a href="/#faq" className="hover:text-white transition-colors">FAQ</a>
-              <a href="/regulamento" className="hover:text-white transition-colors">Regulamento</a>
+              <a href="/#pilares" className="hover:text-white transition-colors">Regulamento</a>
+              <a href="/material" className="hover:text-white transition-colors">Material</a>
               <div className="flex items-center gap-2">
                 <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -250,16 +261,16 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-2 mb-6 justify-start">
                 <Tag>SOFAS</Tag>
-                <Tag>RACKS</Tag>
+                <Tag>RACKS E PAINÉIS</Tag>
                 <Tag>COLCHÕES</Tag>
                 <Tag>COZINHAS</Tag>
                 <Tag>GUARDA-ROUPA</Tag>
-                <Tag>MESAS</Tag>
+                <Tag>MESAS E CADEIRAS</Tag>
               </div>
               <div className="flex items-center gap-3 flex-wrap justify-start">
                 <button
                   type="button"
-                  onClick={() => setVotando("industria")}
+                  onClick={() => { setVotando("industria"); trackEvent(EV.voteStart, "industria"); }}
                   className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
@@ -294,7 +305,7 @@ export default function Home() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setVotando("fornecedores")}
+                  onClick={() => { setVotando("fornecedores"); trackEvent(EV.voteStart, "fornecedores"); }}
                   className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
@@ -312,7 +323,7 @@ export default function Home() {
               (indústrias → cadeira na direita, painel na esquerda; e vice-versa) */}
           {votando && (
             <div
-              className={`relative z-10 w-full lg:w-[70%] self-end mt-12 lg:mt-0 mb-8 text-white ${votando === "industria" ? "mr-auto" : "ml-auto"}`}
+              className={`relative z-10 w-full lg:w-[70%] self-center my-8 text-white ${votando === "industria" ? "mr-auto" : "ml-auto"}`}
             >
               <button
                 type="button"
@@ -354,9 +365,10 @@ export default function Home() {
         )}
       </section>
 
+      <Numeros />
       <Pilares />
+      <Vencedores />
       <Faq />
-      <Cta />
       <Footer />
     </main>
   );
