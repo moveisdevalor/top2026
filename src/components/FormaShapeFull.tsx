@@ -296,7 +296,7 @@ export function FormaShapeFull({
       {/* seta para baixo na aba inferior: rola até a próxima section (só desktop) */}
       <button
         aria-label="Rolar para baixo"
-        className="hidden lg:flex"
+        className="hidden lg:flex arrow-float"
         onClick={(e) => {
           const section = e.currentTarget.closest("section");
           section?.nextElementSibling?.scrollIntoView({ behavior: "smooth" });

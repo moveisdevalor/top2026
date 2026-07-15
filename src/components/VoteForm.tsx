@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createTopVote, getVotesByEmail } from "@/lib/api";
 import { getLocation, type LocationInfo } from "@/lib/location";
 import { RegulamentoModal } from "@/components/RegulamentoModal";
+import { ShareVote } from "@/components/ShareVote";
 import { trackEvent, EV } from "@/lib/analytics";
 
 type Props = {
@@ -19,6 +20,9 @@ type Vote = { marca: string; nota: number };
 
 const MAX = 5;
 const SCORES = [5, 6, 7, 8, 9, 10];
+
+// sombra sutil para textos claros sobre a cadeira (só no modo escuro do hero)
+const SOMBRA = "[text-shadow:0_1px_3px_rgba(0,0,0,0.6)]";
 
 // Atributos avaliados por marca (nota 5-10 em cada); a média vira a nota.
 const ATRIBUTOS = [
@@ -314,6 +318,7 @@ export function VoteForm({
                   Voltar à home
                 </a>
               </div>
+              <ShareVote onDark={onDark} />
             </div>
           ) : !identified ? (
             <form
@@ -409,7 +414,7 @@ export function VoteForm({
                 </div>
               )}
               <div className="flex items-start justify-between gap-3">
-                <div className={`space-y-1 text-xs flex-1 ${onDark ? "text-white/70" : "text-[var(--color-muted)]"}`}>
+                <div className={`space-y-1 text-xs flex-1 ${onDark ? `text-white ${SOMBRA}` : "text-[var(--color-muted)]"}`}>
                   <p><strong className={onDark ? "text-white" : "text-[var(--color-ink)]"}>{nome}</strong></p>
                   <p>{email}</p>
                 </div>
@@ -451,7 +456,7 @@ export function VoteForm({
                     ))}
                   </ul>
                 )}
-                <p className={`mt-2 text-[10px] leading-snug ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
+                <p className={`mt-2 text-[11px] leading-snug ${onDark ? `text-white ${SOMBRA}` : "text-[var(--color-muted)]"}`}>
                   Você ainda pode indicar {remaining} marca{remaining !== 1 && "s"}.
                 </p>
               </div>
@@ -466,7 +471,7 @@ export function VoteForm({
           {identified && !done ? (
             <div className="space-y-5">
             <div className="space-y-3">
-              <div className={`flex items-center justify-between text-[11px] tracking-[0.2em] font-semibold uppercase ${onDark ? "text-white/60" : "text-[var(--color-muted)]"}`}>
+              <div className={`flex items-center justify-between text-[11px] tracking-[0.2em] font-semibold uppercase ${onDark ? `text-white ${SOMBRA}` : "text-[var(--color-muted)]"}`}>
                 <span>Avalie cada atributo</span>
                 <span className="tracking-normal normal-case">5 a 10</span>
               </div>
@@ -474,14 +479,10 @@ export function VoteForm({
                 const val = notas[atr.key];
                 return (
                   <div key={atr.key} className="flex items-center gap-2 sm:gap-3">
-                    <div className={`w-[142px] sm:w-[180px] shrink-0 text-[11px] sm:text-[13px] leading-tight font-medium ${onDark ? "text-white/85" : "text-[var(--color-ink)]"}`}>
+                    <div className={`w-[160px] sm:w-[210px] shrink-0 text-[15px] sm:text-[17px] leading-tight font-semibold ${onDark ? `text-white ${SOMBRA}` : "text-[var(--color-ink)]"}`}>
                       {atr.label}
                     </div>
-                    <div
-                      className={`flex flex-1 min-w-0 rounded-full overflow-hidden border ${
-                        onDark ? "border-white/25" : "border-[var(--color-line)]"
-                      }`}
-                    >
+                    <div className="flex flex-1 min-w-0 rounded-full overflow-hidden border bg-white border-[var(--color-line)]">
                       {SCORES.map((s) => {
                         const active = val === s;
                         return (
@@ -495,10 +496,8 @@ export function VoteForm({
                             className={`flex-1 h-8 text-[11px] sm:text-xs font-bold transition-colors ${
                               active
                                 ? "text-white"
-                                : onDark
-                                ? "text-white/70 hover:text-white hover:bg-white/10"
                                 : "text-[var(--color-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-bg-soft)]"
-                            } ${s !== SCORES[0] ? (onDark ? "border-l border-white/15" : "border-l border-[var(--color-line)]") : ""}`}
+                            } ${s !== SCORES[0] ? "border-l border-[var(--color-line)]" : ""}`}
                             style={active ? { background: color } : undefined}
                           >
                             {s}
@@ -631,7 +630,7 @@ function Input({
       placeholder={placeholder}
       className={
         dark
-          ? "w-full px-5 py-3 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/50 text-base sm:text-sm focus:outline-none focus:border-white/70 transition-colors backdrop-blur-sm"
+          ? `w-full px-5 py-3 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/70 text-base sm:text-sm focus:outline-none focus:border-white/70 transition-colors backdrop-blur-sm ${SOMBRA}`
           : "w-full px-4 py-3 rounded-xl border border-[var(--color-line)] text-base sm:text-sm focus:outline-none focus:border-[var(--color-ink)] transition-colors"
       }
     />

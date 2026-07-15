@@ -75,6 +75,50 @@ img, svg { max-width: 100%; height: auto; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-d { animation: float 7s ease-in-out -2s infinite; }
 
+/* Hero: colunas deslizam para dentro (indústria ←→ fornecedores invertido) */
+@keyframes heroSlideLeft {
+  from { opacity: 0; transform: translateX(-56px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes heroSlideRight {
+  from { opacity: 0; transform: translateX(56px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-in-left  { opacity: 0; animation: heroSlideLeft  .8s cubic-bezier(.22,1,.36,1) both; }
+.hero-in-right { opacity: 0; animation: heroSlideRight .8s cubic-bezier(.22,1,.36,1) both; }
+
+/* Tags (SOFAS, RACKS…) sobem uma por vez, de baixo para cima */
+@keyframes tagRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tag-rise { opacity: 0; animation: tagRise .5s cubic-bezier(.22,1,.36,1) both; }
+.tag-rise:nth-child(1) { animation-delay: .45s; }
+.tag-rise:nth-child(2) { animation-delay: .55s; }
+.tag-rise:nth-child(3) { animation-delay: .65s; }
+.tag-rise:nth-child(4) { animation-delay: .75s; }
+.tag-rise:nth-child(5) { animation-delay: .85s; }
+.tag-rise:nth-child(6) { animation-delay: .95s; }
+
+/* setinha do hero flutuando — usa a propriedade `translate` (compõe com o
+   transform de centralização, sem quebrar o translateX(-50%)) */
+@keyframes arrowFloat {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 6px; }
+}
+.arrow-float { animation: arrowFloat 2s ease-in-out infinite; }
+
+/* setinha horizontal (botões "Votar") — vai-e-volta para a direita */
+@keyframes arrowFloatX {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 5px 0; }
+}
+.arrow-float-x { animation: arrowFloatX 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in-left, .hero-in-right, .tag-rise, .arrow-float, .arrow-float-x { animation: none; opacity: 1; }
+}
+
 .scribble {
   position: relative;
   display: inline-block;

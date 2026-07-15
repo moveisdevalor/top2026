@@ -110,6 +110,7 @@ export function Ranking({
   accent,
   items,
   onDark = false,
+  semNumero = false,
 }: {
   label: string;
   title: string;
@@ -117,6 +118,8 @@ export function Ranking({
   items: string[];
   /** Ajusta cores para quando o ranking está sobre o card azul do hero. */
   onDark?: boolean;
+  /** Oculta a numeração das posições. */
+  semNumero?: boolean;
 }) {
   return (
     <div className={onDark ? "text-white" : undefined}>
@@ -139,18 +142,24 @@ export function Ranking({
           return (
             <li
               key={name}
-              className={`grid grid-cols-[44px_1fr_auto] sm:grid-cols-[56px_1fr_auto] md:grid-cols-[72px_1fr_auto] gap-3 sm:gap-4 py-3.5 sm:py-4 border-b last:border-b-0 items-center transition-colors ${
+              className={`grid ${
+                semNumero
+                  ? "grid-cols-[1fr_auto]"
+                  : "grid-cols-[44px_1fr_auto] sm:grid-cols-[56px_1fr_auto] md:grid-cols-[72px_1fr_auto]"
+              } gap-3 sm:gap-4 py-3.5 sm:py-4 border-b last:border-b-0 items-center transition-colors ${
                 onDark
                   ? "border-white/15 hover:bg-white/5"
                   : "border-[var(--color-line-soft)] hover:bg-[var(--color-bg-soft)]"
               }`}
             >
-              <span
-                className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight"
-                style={{ color: top3 ? accent : onDark ? "rgba(255,255,255,0.6)" : "var(--color-muted)" }}
-              >
-                {String(rank).padStart(2, "0")}
-              </span>
+              {!semNumero && (
+                <span
+                  className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight"
+                  style={{ color: top3 ? accent : onDark ? "rgba(255,255,255,0.6)" : "var(--color-muted)" }}
+                >
+                  {String(rank).padStart(2, "0")}
+                </span>
+              )}
               <span className="text-[15px] sm:text-base md:text-lg font-medium tracking-tight">
                 {name}
               </span>

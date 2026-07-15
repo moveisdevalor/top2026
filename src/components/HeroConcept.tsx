@@ -26,19 +26,19 @@ export function HeroConcept() {
               <a href="/sobre" className="hover:text-[var(--color-ink)]">Sobre</a>
             </nav>
             <div className="flex items-center gap-5 text-[var(--color-muted)]">
-              <a href="#" aria-label="Instagram" className="hover:text-[var(--color-ink)]">
+              <a href="https://www.instagram.com/moveisdevalor/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-[var(--color-ink)]">
                 <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.4">
                   <rect x="3" y="3" width="18" height="18" rx="5" />
                   <circle cx="12" cy="12" r="4" />
                   <circle cx="17.5" cy="6.5" r="0.7" fill="currentColor" />
                 </svg>
               </a>
-              <a href="#" aria-label="Facebook" className="hover:text-[var(--color-ink)]">
+              <a href="https://www.facebook.com/MoveisdeValor" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-[var(--color-ink)]">
                 <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
                   <path d="M13 22v-8h3l1-4h-4V7.5c0-1.1.5-2 2-2h2V2h-3c-3 0-5 1.8-5 5v3H6v4h3v8h4z" />
                 </svg>
               </a>
-              <a href="#" aria-label="LinkedIn" className="hover:text-[var(--color-ink)]">
+              <a href="https://www.linkedin.com/company/revistamoveisdevalor/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[var(--color-ink)]">
                 <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
                   <path d="M4 4h4v16H4zM6 2.5A2.5 2.5 0 118.5 5 2.5 2.5 0 016 2.5zM10 8h3.8v2.2h.1c.5-1 1.9-2.2 3.9-2.2 4.2 0 5 2.7 5 6.3V20h-4v-5.4c0-1.3 0-2.9-1.8-2.9s-2.1 1.4-2.1 2.8V20h-4z" />
                 </svg>

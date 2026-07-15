@@ -136,21 +136,21 @@ export default function Home() {
               <a href="/#pilares" className="hover:text-white transition-colors">Regulamento</a>
               <a href="/material" className="hover:text-white transition-colors">Material</a>
               <div className="flex items-center gap-2">
-                <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
+                <a href="https://www.facebook.com/MoveisdeValor" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.2-1.5 1.5-1.5h1.4V4.9c-.2 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6V11H8.5v3h2.3v7h2.7z" />
                   </svg>
                 </a>
-                <a href="#" aria-label="Instagram" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
+                <a href="https://www.instagram.com/moveisdevalor/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
                     <circle cx="12" cy="12" r="4" />
                     <circle cx="17.2" cy="6.8" r="0.5" fill="currentColor" />
                   </svg>
                 </a>
-                <a href="#" aria-label="X" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
-                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.7 3h2.9l-6.4 7.3L21.7 21h-5.9l-4.6-6-5.3 6H3l6.9-7.8L2.7 3h6l4.1 5.5L17.7 3zm-1 16.2h1.6L7.8 4.7H6L16.7 19.2z" />
+                <a href="https://www.linkedin.com/company/revistamoveisdevalor/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6.94 5A1.94 1.94 0 1 1 3.06 5a1.94 1.94 0 0 1 3.88 0zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z" />
                   </svg>
                 </a>
               </div>
@@ -187,7 +187,9 @@ export default function Home() {
                 top: "50%",
                 left: (votando ?? (slide === 0 ? "industria" : "fornecedores")) === "industria" ? "100%" : "0%",
                 transform: "translate(-50%, -50%)",
-                transition: "left 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+                // leve transparência durante a votação para o texto respirar
+                opacity: votando ? 0.6 : 1,
+                transition: "left 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease",
               }}
             />
           </div>
@@ -251,7 +253,7 @@ export default function Home() {
               onPointerCancel={handlePointerUp}
               className="flex overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing md:cursor-auto md:grid md:grid-cols-2 md:gap-10 md:overflow-visible md:snap-none items-end"
             >
-            <div className="w-full shrink-0 snap-center md:max-w-[420px] md:w-auto md:shrink text-left">
+            <div className="hero-in-left w-full shrink-0 snap-center md:max-w-[420px] md:w-auto md:shrink text-left">
               <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">QUEM TRANSFORMA</p>
               <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4">
                 INDÚSTRIAS
@@ -274,7 +276,7 @@ export default function Home() {
                   className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
-                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" className="arrow-float-x w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -284,7 +286,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="w-full shrink-0 snap-center md:max-w-[420px] md:w-auto md:shrink md:ml-auto text-right">
+            <div className="hero-in-right w-full shrink-0 snap-center md:max-w-[420px] md:w-auto md:shrink md:ml-auto text-right">
               <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">QUEM ABASTECE</p>
               <h2 className="font-black text-3xl lg:text-5xl leading-none tracking-[-0.02em] mb-4">
                 FORNECEDORES
@@ -309,7 +311,7 @@ export default function Home() {
                   className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
-                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" className="arrow-float-x w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -365,6 +367,14 @@ export default function Home() {
         )}
       </section>
 
+      {/* slogan */}
+      <section className="px-4 sm:px-6 md:px-10 pt-4 pb-10 md:pb-14">
+        <p className="max-w-[900px] mx-auto text-center font-black tracking-[-0.02em] leading-tight text-2xl sm:text-3xl md:text-4xl text-[var(--color-ink)]">
+          Ser lembrado é bom. Ser escolhido é{" "}
+          <span style={{ color: "#d4a017" }}>TOP</span>.
+        </p>
+      </section>
+
       <Numeros />
       <Pilares />
       <Vencedores />
@@ -376,7 +386,7 @@ export default function Home() {
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="px-3 py-1 rounded-full text-[10px] tracking-[0.2em] font-semibold border border-white/25 text-white/85">
+    <span className="tag-rise px-3 py-1 rounded-full text-[10px] tracking-[0.2em] font-semibold border border-white/25 text-white/85">
       {children}
     </span>
   );
