@@ -1,6 +1,6 @@
 "use client";
 
-const AZUL = "#1e3fa8";
+const AZUL = "var(--azul)";
 
 // Forma desenhada em coordenadas 880×530 e escalada para objectBoundingBox,
 // então acompanha o tamanho do container (que trava a proporção via aspect-ratio).
@@ -53,7 +53,7 @@ export function FormaShape({ children }: { children?: React.ReactNode }) {
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(120% 90% at 50% -10%, #5b9cf6 0%, rgba(47,106,224,0.55) 40%, rgba(47,106,224,0) 65%), linear-gradient(160deg, #2e6fe8 0%, #1a4fd4 45%, #0d2fa6 100%)",
+"var(--grad)",
           clipPath: "url(#forma-clip)",
           WebkitClipPath: "url(#forma-clip)",
           display: "flex",

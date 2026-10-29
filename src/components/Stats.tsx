@@ -5,13 +5,36 @@ import { getVoteCounts, type VoteCounts } from "@/lib/api";
 
 const fmt = (n: number) => n.toLocaleString("pt-BR");
 
+// Números iniciais para somar aos votos reais.
+const BASE_INDUSTRIA = 23;
+const BASE_FORNECEDORES = 9;
+const BASE_TOTAL = BASE_INDUSTRIA + BASE_FORNECEDORES;
+
+const initialCounts: VoteCounts = {
+  total: BASE_TOTAL,
+  byTop: {},
+  industria: BASE_INDUSTRIA,
+  fornecedores: BASE_FORNECEDORES,
+};
+
 export function Stats() {
-  const [data, setData] = useState<VoteCounts | null>(null);
+  const [data, setData] = useState<VoteCounts>(initialCounts);
 
   useEffect(() => {
     let alive = true;
     const load = () =>
-      getVoteCounts(1).then((d) => alive && setData(d)).catch(() => {});
+      getVoteCounts(1)
+        .then(
+          (d) =>
+            alive &&
+            setData({
+              ...d,
+              total: d.total + BASE_TOTAL,
+              industria: d.industria + BASE_INDUSTRIA,
+              fornecedores: d.fornecedores + BASE_FORNECEDORES,
+            }),
+        )
+        .catch(() => {});
     load();
     const id = setInterval(load, 30_000); // atualiza a cada 30s
     return () => {
@@ -21,9 +44,9 @@ export function Stats() {
   }, []);
 
   const items = [
-    { label: "Total de votos", value: data ? fmt(data.total) : "—" },
-    { label: "Indústria",      value: data ? fmt(data.industria) : "—" },
-    { label: "Fornecedores",   value: data ? fmt(data.fornecedores) : "—" },
+    { label: "Total de votos", value: fmt(data.total) },
+    { label: "Indústria",      value: fmt(data.industria) },
+    { label: "Fornecedores",   value: fmt(data.fornecedores) },
   ];
 
   return (

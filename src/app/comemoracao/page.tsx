@@ -19,7 +19,7 @@ export default function ComemoracaoPage() {
           <LabelClaro center>VOTO REGISTRADO</LabelClaro>
           <h1 className="font-black text-[2.25rem] sm:text-5xl md:text-7xl leading-[1.02] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
             Obrigado por<br />
-            <span style={{ color: "#7cc4e8" }}>reconhecer</span> quem<br />
+            <span style={{ color: "var(--azul-claro)" }}>reconhecer</span> quem<br />
             faz o setor girar.
           </h1>
 

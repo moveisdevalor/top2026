@@ -44,12 +44,25 @@ export function Divisor({
 }
 
 /* ── NÚMEROS ── */
-/* Totais de votos aprovados da edição atual, direto da API (/top/counts). */
+/* Totais de votos aprovados da edição atual, direto da API (/top/counts), somados
+   aos votos que a API pública ainda não reflete (conferido no relatório do painel
+   administrativo em 21/10/2026: 3.988 aprovados, 2.908 indústria, 1.080 fornecedores). */
+const BASE_INDUSTRIA = 845;
+const BASE_FORNECEDORES = 914;
+
 export function Numeros() {
+  // começa null para não piscar um número errado (sem o offset) antes da API responder
   const [counts, setCounts] = useState<VoteCounts | null>(null);
 
   useEffect(() => {
-    getVoteCounts(1).then(setCounts);
+    getVoteCounts(1).then((d) =>
+      setCounts({
+        ...d,
+        total: d.total + BASE_INDUSTRIA + BASE_FORNECEDORES,
+        industria: d.industria + BASE_INDUSTRIA,
+        fornecedores: d.fornecedores + BASE_FORNECEDORES,
+      }),
+    );
   }, []);
 
   const fmt = (n: number) => n.toLocaleString("pt-BR");
@@ -157,7 +170,7 @@ export function Categorias() {
             chips={["MADEIRA & MDF", "FERRAGENS", "TECIDOS", "TINTAS", "LOGÍSTICA"]}
             href="/fornecedores"
             nota="Apenas indústrias"
-            notaCor="#7cc4e8"
+            notaCor="var(--azul-claro)"
           />
         </div>
       </div>
@@ -208,13 +221,13 @@ export function Vencedores() {
   const temFornecedores = edicao.fornecedores.length > 0;
 
   return (
-    // full-bleed como o hero; a faixa final sólida (#0d2fa6) garante que a aba
-    // do Divisor da seção seguinte case exatamente com a cor da base
+    // full-bleed como o hero; a faixa final sólida (--azul-fundo) garante que a
+    // aba do Divisor da seção seguinte case exatamente com a cor da base
     <section
       id="vencedores"
       className="text-white"
       style={{
-        background: `linear-gradient(to top, #0d2fa6 0, #0d2fa6 60px, rgba(13,47,166,0) 260px), ${GRADIENTE}`,
+        background: `linear-gradient(to top, var(--azul-fundo) 0, var(--azul-fundo) 60px, rgba(var(--azul-fundo-rgb), 0) 260px), ${GRADIENTE}`,
       }}
     >
       <Divisor corAnterior="#ffffff" />
@@ -222,7 +235,7 @@ export function Vencedores() {
         <div className="text-center mb-10">
           <p className="text-[11px] tracking-[0.3em] text-white/60 mb-3">VENCEDORES</p>
           <h2 className="font-black text-3xl sm:text-4xl md:text-5xl tracking-[-0.02em] leading-[1.08]">
-            As marcas mais admiradas, <span style={{ color: "#7cc4e8" }}>ano a ano.</span>
+            As marcas mais admiradas, <span className="text-white">ano a ano.</span>
           </h2>
         </div>
 
@@ -238,8 +251,8 @@ export function Vencedores() {
           <div className={temFornecedores ? "lg:pr-12" : undefined}>
             <Ranking
               label="QUEM TRANSFORMA"
-              title="indústria"
-              accent="#d4a017"
+              title="indústrias"
+              accent="#ffffff"
               items={edicao.industrias}
               onDark
               semNumero
@@ -250,7 +263,7 @@ export function Vencedores() {
               <Ranking
                 label="QUEM ABASTECE"
                 title="fornecedores"
-                accent="#7cc4e8"
+                accent="#ffffff"
                 items={edicao.fornecedores}
                 onDark
                 semNumero
@@ -281,7 +294,7 @@ export function Faq() {
     },
     {
       q: "Como funciona o processo de votação?",
-      a: "É simples. Basta acessar o ícone INDÚSTRIA ou FORNECEDOR (dependendo se é lojista ou fabricante), escolher até cinco marcas e votar, atribuindo a cada marca uma nota entre 5 e 10.",
+      a: "É simples. Basta acessar o ícone INDÚSTRIAS ou FORNECEDORES (dependendo se é lojista ou fabricante), escolher até cinco marcas e votar, atribuindo a cada marca uma nota entre 5 e 10.",
     },
     {
       q: "Até quando eu posso votar no TOP 20 de 2026?",
@@ -295,7 +308,7 @@ export function Faq() {
 
   return (
     <section id="faq" style={{ background: CINZA }}>
-      <Divisor corAnterior="#0d2fa6" corSeta="#ffffff" />
+      <Divisor corAnterior="var(--azul-fundo)" corSeta="#ffffff" />
       <div className="px-4 sm:px-6 md:px-10 pt-8 pb-16 md:pb-24">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_2fr] gap-10 sm:gap-12">
         <div>
@@ -384,10 +397,26 @@ export function Footer() {
       <div className="max-w-[1400px] mx-auto">
         <div className="grid sm:grid-cols-2 md:grid-cols-[2fr_1fr_1fr] gap-8 sm:gap-12">
           <div>
-            <div className="font-black text-2xl tracking-[-0.02em] mb-4">TOP20</div>
+            {/* a arte já é branca, então assenta direto no degradê do rodapé */}
+            <a
+              href="https://www.moveisdevalor.com.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Móveis de Valor"
+              className="inline-block mb-4 hover:opacity-80 transition-opacity"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/Logo_Moveis_de_Valor-2.png"
+                alt="Móveis de Valor"
+                // altura inline: o `img { height: auto }` do globals.css não está
+                // em @layer e por isso vence as utilitárias do Tailwind (h-*)
+                style={{ height: 56, width: "auto", display: "block" }}
+              />
+            </a>
             <p className="text-white/70 max-w-sm leading-relaxed text-sm">
-              Uma realização Móveis de Valor — referência editorial do setor moveleiro brasileiro
-              desde 2019.
+              Uma realização Móveis de Valor: referência editorial do setor moveleiro brasileiro
+              há 25 anos.
             </p>
             <div className="flex items-center gap-2 mt-6">
               <a href="https://www.facebook.com/MoveisdeValor" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-8 h-8 rounded-full bg-white/15 border border-white/25 flex items-center justify-center hover:bg-white/25 transition-colors">
@@ -412,7 +441,7 @@ export function Footer() {
           <div>
             <h4 className="text-[11px] uppercase tracking-[0.25em] text-white/50 mb-5">Contato</h4>
             <ul className="space-y-2 text-sm text-white/85">
-              <li><a href="tel:+554199129877" className="hover:text-white transition-colors">(41) 9912-9877</a></li>
+              <li><a href="tel:+554199129877" className="hover:text-white transition-colors">(41) 99912-9877</a></li>
               <li><a href="mailto:contato@moveisdevalor.com.br" className="hover:text-white transition-colors">contato@moveisdevalor.com.br</a></li>
               <li className="text-white/60">Curitiba — PR</li>
             </ul>

@@ -34,7 +34,18 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 min
 
 type StoredSession = { id: string; lastActivity: number; startedAt: number };
 
-const isBrowser = () => typeof window !== "undefined" && typeof localStorage !== "undefined";
+// Em Safari com localStorage bloqueado (modo privado, cookies bloqueados),
+// até o `typeof localStorage` lança SecurityError — o acesso ao getter já
+// basta, sem precisar chamar getItem/setItem. Isso quebrava a página inteira
+// (throw fora de try/catch, direto no carregamento via AccessTracker).
+const isBrowser = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    return typeof localStorage !== "undefined";
+  } catch {
+    return false;
+  }
+};
 
 function uuid(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();

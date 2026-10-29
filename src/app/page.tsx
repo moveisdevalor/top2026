@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormaShapeFull } from "@/components/FormaShapeFull";
+import { CountdownBanner } from "@/components/CountdownBanner";
 import { Numeros, Pilares, Vencedores, Faq, Footer } from "@/components/HomeSections";
 import { VoteForm } from "@/components/VoteForm";
 import { trackEvent, EV } from "@/lib/analytics";
@@ -29,9 +30,19 @@ const linksMobile = [
 
 export default function Home() {
   const [votando, setVotando] = useState<"industria" | "fornecedores" | null>(null);
+  const [votoConcluido, setVotoConcluido] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
   const [slide, setSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  // abre o formulário certo direto quando o link vem de fora (ex.: e-mail)
+  // com ?votar=industria ou ?votar=fornecedores
+  useEffect(() => {
+    const alvo = new URLSearchParams(window.location.search).get("votar");
+    if (alvo === "industria" || alvo === "fornecedores") setVotando(alvo);
+  }, []);
+  // cada tema tem a sua poltrona: a azul original e a teal
+  const cadeira = "/chair-blue_copiar.png"; // versão teal, na cor da paleta
 
   // no mobile as colunas viram slides (scroll-snap horizontal); no desktop
   // continuam lado a lado (grid), sem efeito de slider.
@@ -101,7 +112,7 @@ export default function Home() {
                   aria-label="Slide anterior"
                   onClick={() => scrollToSlide(slide - 1)}
                   disabled={slide === 0}
-                  className="absolute z-20 w-9 h-9 flex items-center justify-center text-[#1a4fd4] transition-opacity disabled:opacity-0"
+                  className="absolute z-20 w-9 h-9 flex items-center justify-center text-[var(--azul)] transition-opacity disabled:opacity-0"
                   style={{ left: -3, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -113,7 +124,7 @@ export default function Home() {
                   aria-label="Próximo slide"
                   onClick={() => scrollToSlide(slide + 1)}
                   disabled={slide === 1}
-                  className="absolute z-20 w-9 h-9 flex items-center justify-center text-[#1a4fd4] transition-opacity disabled:opacity-0"
+                  className="absolute z-20 w-9 h-9 flex items-center justify-center text-[var(--azul)] transition-opacity disabled:opacity-0"
                   style={{ right: -3, top: "50%", transform: "translateY(-50%)", pointerEvents: "auto" }}
                 >
                   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -124,6 +135,10 @@ export default function Home() {
             ) : null
           }
         >
+          {/* contagem regressiva: centralizada, no espaço entre o menu e a poltrona;
+              some durante a votação para não disputar espaço com o formulário */}
+          {!votando && <CountdownBanner />}
+
           {/* menu nas laterais do recorte superior */}
           <nav className="absolute top-5 left-1/2 -translate-x-1/2 w-full max-w-[1400px] z-20 hidden lg:flex items-center justify-between px-20 pt-4 text-[13px] text-white/85">
             <div className="flex items-center gap-6">
@@ -163,7 +178,7 @@ export default function Home() {
               isso fica num wrapper com overflow:hidden do tamanho do container. */}
           <div className="hidden md:block absolute inset-0 overflow-hidden pointer-events-none">
             <img
-              src="/chair-blue.png"
+              src={cadeira}
               alt=""
               className="absolute w-[38%] max-w-[520px] select-none"
               style={{
@@ -180,7 +195,7 @@ export default function Home() {
               em vez do estado de voto — sempre de um lado, nunca centralizada. */}
           <div className="md:hidden absolute inset-0 overflow-hidden pointer-events-none">
             <img
-              src="/chair-blue.png"
+              src={cadeira}
               alt=""
               className="absolute w-[92%] max-w-[420px] select-none"
               style={{
@@ -209,9 +224,11 @@ export default function Home() {
           </span>
 
           {/* seletor nomeado do slider — só no mobile, no alto do card (abaixo
-              do recorte da logo), some durante a votação */}
+              do recorte da logo), some durante a votação.
+              top precisa ficar abaixo do recorte (66px de profundidade) + folga:
+              com top-16 (64px) o seletor entrava no branco do recorte */}
           <div
-            className="absolute top-16 left-1/2 -translate-x-1/2 z-20 md:hidden"
+            className="absolute top-[86px] left-1/2 -translate-x-1/2 z-20 md:hidden"
             style={{ display: votando ? "none" : undefined }}
           >
             <div className="flex items-center gap-1 p-1 rounded-full bg-white/10 border border-white/25 backdrop-blur-sm">
@@ -219,7 +236,7 @@ export default function Home() {
                 type="button"
                 onClick={() => scrollToSlide(0)}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
-                  slide === 0 ? "bg-white text-[#1a4fd4]" : "text-white/70"
+                  slide === 0 ? "bg-white text-[var(--azul)]" : "text-white/70"
                 }`}
               >
                 Indústrias
@@ -228,7 +245,7 @@ export default function Home() {
                 type="button"
                 onClick={() => scrollToSlide(1)}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
-                  slide === 1 ? "bg-white text-[#1a4fd4]" : "text-white/70"
+                  slide === 1 ? "bg-white text-[var(--azul)]" : "text-white/70"
                 }`}
               >
                 Fornecedores
@@ -273,7 +290,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => { setVotando("industria"); trackEvent(EV.voteStart, "industria"); }}
-                  className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full bg-white text-[var(--azul)] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
                   <svg viewBox="0 0 24 24" className="arrow-float-x w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -308,7 +325,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => { setVotando("fornecedores"); trackEvent(EV.voteStart, "fornecedores"); }}
-                  className="inline-flex items-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full bg-white text-[var(--azul)] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                 >
                   Votar
                   <svg viewBox="0 0 24 24" className="arrow-float-x w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -327,16 +344,18 @@ export default function Home() {
             <div
               className={`relative z-10 w-full lg:w-[70%] self-center my-8 text-white ${votando === "industria" ? "mr-auto" : "ml-auto"}`}
             >
-              <button
-                type="button"
-                onClick={() => setVotando(null)}
-                className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors"
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7" />
-                </svg>
-                Voltar
-              </button>
+              {!votoConcluido && (
+                <button
+                  type="button"
+                  onClick={() => setVotando(null)}
+                  className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors"
+                >
+                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  Voltar
+                </button>
+              )}
               <div className="text-[var(--color-ink)] [&>section]:max-w-none [&>section]:px-0 [&>section]:py-0">
                 <VoteForm
                   area={votando}
@@ -344,6 +363,7 @@ export default function Home() {
                   voteSubject={votando === "industria" ? "indústria" : "fornecedor"}
                   brandSuggestions={votando === "industria" ? sugestoesIndustria : sugestoesFornecedor}
                   onDark
+                  onDoneChange={setVotoConcluido}
                 />
               </div>
             </div>

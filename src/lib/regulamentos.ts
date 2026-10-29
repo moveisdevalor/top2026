@@ -30,7 +30,7 @@ export const artigosIndustria: Artigo[] = [
   {
     num: "4º",
     body:
-      "Terão direito a voto o proprietário ou o comprador da loja, havendo apenas um voto por empresa. No caso de filiais do grupo, será contabilizado apenas o primeiro voto lançado no sistema online.",
+      "Terão direito a voto o proprietário ou o comprador da loja, validando apenas um voto por empresa. No caso de filiais do grupo, será contabilizado apenas o primeiro voto lançado no sistema online.",
     paragrafos: [
       {
         titulo: "Parágrafo 1º",
@@ -42,7 +42,7 @@ export const artigosIndustria: Artigo[] = [
   {
     num: "5º",
     body:
-      "Cada proprietário ou comprador poderá indicar até cinco indústrias, atribuindo pontuação entre 5 e 10. Indicações sem pontuação receberão a nota mínima de 5.",
+      "Cada proprietário ou comprador poderá indicar até cinco indústrias, atribuindo pontuação entre 5 e 10 em cada um dos critérios.",
   },
   {
     num: "6º",
@@ -67,7 +67,7 @@ export const artigosIndustria: Artigo[] = [
   {
     num: "10º",
     body:
-      "O prazo para votação inicia em zero hora do dia 05 de agosto de 2026 e encerra às 24 horas do dia 07 de novembro de 2026.",
+      "O prazo para votação inicia em zero hora do dia 23 de julho de 2026 e encerra às 24 horas do dia 07 de novembro de 2026.",
   },
   {
     num: "11º",
@@ -92,7 +92,7 @@ export const artigosIndustria: Artigo[] = [
   {
     num: "15º",
     body:
-      "Cada indústria vencedora receberá um Certificado da revista Móveis de Valor contendo marcas da organização e patrocinador.",
+      "Cada indústria vencedora receberá um troféu e um Certificado da revista Móveis de Valor contendo marcas da organização e patrocinador.",
   },
   {
     num: "16º",
@@ -154,7 +154,7 @@ export const artigosFornecedor: Artigo[] = [
   {
     num: "5º",
     body:
-      "Cada proprietário ou comprador de indústria poderá indicar até cinco marcas, atribuindo a cada uma delas pontuação entre 5 e 10. Onde houver indicação de marcas de fornecedores, porém sem que se indique pontuação, será atribuída a menor nota do prêmio = 5.",
+      "Cada proprietário ou comprador de indústria poderá indicar até cinco marcas, atribuindo a cada uma delas pontuação entre 5 e 10 em cada um dos critérios. Onde houver indicação de marcas de fornecedores, porém sem que se indique pontuação, será atribuída a menor nota do prêmio = 5.",
   },
   {
     num: "6º",
@@ -179,7 +179,7 @@ export const artigosFornecedor: Artigo[] = [
   {
     num: "10º",
     body:
-      "O prazo para votação se inicia a zero hora do dia 05 de agosto de 2026 e se encerrará, impreterivelmente, às 24 horas do dia 07 de novembro de 2026.",
+        "O prazo para votação inicia em zero hora do dia 23 de julho de 2026 e encerra às 24 horas do dia 07 de novembro de 2026.",
   },
   {
     num: "11º",
@@ -204,7 +204,7 @@ export const artigosFornecedor: Artigo[] = [
   {
     num: "15º",
     body:
-      "Cada fornecedor que figurar na relação dos vencedores do ranking receberá da revista Móveis de Valor um Certificado alusivo ao evento, contendo as marcas da organização e do patrocinador da promoção.",
+      "Cada fornecedor que figurar na relação dos vencedores do ranking receberá da revista Móveis de Valor um troféu e um Certificado alusivo ao evento, contendo as marcas da organização e do patrocinador da promoção.",
   },
   {
     num: "16º",

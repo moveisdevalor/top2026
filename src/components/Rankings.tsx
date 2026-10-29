@@ -40,7 +40,7 @@ export function Rankings() {
         <div className={temFornecedores ? "lg:pr-12" : undefined}>
           <Ranking
             label="QUEM TRANSFORMA"
-            title="indústria"
+            title="indústrias"
             accent="#d4a017"
             items={edicao.industrias}
           />
@@ -89,7 +89,7 @@ export function SeletorAno({
             className={`shrink-0 px-4 sm:px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${
               a === ano
                 ? onDark
-                  ? "bg-white text-[#1a4fd4]"
+                  ? "bg-white text-[var(--azul)]"
                   : "bg-[var(--color-primary)] text-white"
                 : onDark
                 ? "text-white/70 hover:text-white"

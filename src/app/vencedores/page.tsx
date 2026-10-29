@@ -18,7 +18,7 @@ export default function VencedoresPage() {
           <LabelClaro center>EDIÇÃO 2026</LabelClaro>
           <h1 className="font-black text-[2.25rem] sm:text-5xl md:text-7xl leading-[1.02] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
             As <span style={{ color: "#d4a017" }}>20 marcas</span><br />
-            mais <span style={{ color: "#7cc4e8" }}>admiradas</span><br />
+            mais <span style={{ color: "var(--azul-claro)" }}>admiradas</span><br />
             do setor moveleiro.
           </h1>
 
@@ -28,7 +28,7 @@ export default function VencedoresPage() {
           </p>
 
           <div className="flex flex-wrap justify-center gap-2">
-            {["INDÚSTRIA", "FORNECEDORES", "ANÚNCIO OFICIAL"].map((t) => (
+            {["INDÚSTRIAS", "FORNECEDORES", "ANÚNCIO OFICIAL"].map((t) => (
               <ChipAzulClaro key={t}>{t}</ChipAzulClaro>
             ))}
           </div>

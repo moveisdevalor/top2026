@@ -1,5 +1,24 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
+// Evita que o servidor fique preso esperando a API externa travar a página inteira.
+function fetchWithTimeout(input: string, init?: RequestInit, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+// Gera o timestamp já no horário de Brasília, independente do fuso do servidor.
+function nowInBrazil(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (type: string) => parts.find((p) => p.type === type)?.value;
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}-03:00`;
+}
+
 export type CreateTopPayload = {
   loja:    string;
   email:   string;
@@ -23,7 +42,7 @@ export type CreateTopPayload = {
 };
 
 export async function createTopVote(payload: CreateTopPayload) {
-  const now = new Date().toISOString();
+  const now = nowInBrazil();
   const body = {
     lat: "",
     long: "",
@@ -36,7 +55,7 @@ export async function createTopVote(payload: CreateTopPayload) {
     ...payload,
   };
 
-  const res = await fetch(`${BASE}/top`, {
+  const res = await fetchWithTimeout(`${BASE}/top`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify(body),
@@ -64,12 +83,14 @@ export type TopVote = {
 };
 
 export async function getVotesByEmail(email: string, top?: number): Promise<TopVote[]> {
-  const res = await fetch(
-    `${BASE}/top/email/${encodeURIComponent(email)}`,
-  );
-  if (!res.ok) return [];
-  const all = (await res.json()) as TopVote[];
-  return top === undefined ? all : all.filter((v) => v.top === top);
+  try {
+    const res = await fetchWithTimeout(`${BASE}/top/email/${encodeURIComponent(email)}`);
+    if (!res.ok) return [];
+    const all = (await res.json()) as TopVote[];
+    return top === undefined ? all : all.filter((v) => v.top === top);
+  } catch {
+    return [];
+  }
 }
 
 export type TopWinner = {
@@ -84,9 +105,13 @@ export type TopWinner = {
 
 // Vencedores das edições anteriores (tabela top_winners).
 export async function getTopWinnersList(): Promise<TopWinner[]> {
-  const res = await fetch(`${BASE}/top/winners-list`, { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetchWithTimeout(`${BASE}/top/winners-list`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 export type VoteCounts = {
@@ -98,9 +123,14 @@ export type VoteCounts = {
 
 // Busca totais públicos. status=1 = aprovados.
 export async function getVoteCounts(status?: number): Promise<VoteCounts> {
-  const url = new URL(`${BASE}/top/counts`);
-  if (status !== undefined) url.searchParams.set("status", String(status));
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) return { total: 0, byTop: {}, industria: 0, fornecedores: 0 };
-  return res.json();
+  const empty = { total: 0, byTop: {}, industria: 0, fornecedores: 0 };
+  try {
+    const url = new URL(`${BASE}/top/counts`);
+    if (status !== undefined) url.searchParams.set("status", String(status));
+    const res = await fetchWithTimeout(url.toString(), { cache: "no-store" });
+    if (!res.ok) return empty;
+    return res.json();
+  } catch {
+    return empty;
+  }
 }

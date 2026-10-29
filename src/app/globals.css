@@ -7,10 +7,27 @@
   --color-muted: #6b6b6b;
   --color-line: #e4e4e4;
   --color-line-soft: #ececec;
-  --color-primary: #1a4fd4;
-  --color-primary-soft: #e7eeff;
+  --color-primary: var(--azul);
+  --color-primary-soft: var(--azul-soft);
 
   --font-sans: var(--font-sans);
+}
+
+/* Paleta do site: o teal da logo. Os componentes leem estas variáveis em vez de
+   literais, então a cor sai daqui para hero, cards, pills, títulos e setas.
+   (Os nomes ainda são "azul" por herança da paleta anterior.) */
+:root {
+  --grad: radial-gradient(120% 90% at 50% -10%, #5fded4 0%, rgba(45,180,175,0.55) 40%, rgba(45,180,175,0) 65%), linear-gradient(160deg, #2ab3ad 0%, #14807f 45%, #063f45 100%);
+  --azul: #14807f;
+  --azul-soft: #e3f6f4;
+  /* cor do fim do degradê: usada nas faixas sólidas que precisam casar com a
+     base dele (seção Vencedores e a aba do Divisor seguinte) */
+  --azul-fundo: #063f45;
+  --azul-fundo-rgb: 6, 63, 69;
+  /* acento claro sobre fundo escuro (destaques de título) */
+  --azul-claro: #7fdcd4;
+  /* dourado claro sobre fundo escuro (mesmo papel do azul-claro, para o lado indústria) */
+  --dourado-claro: #f2c14e;
 }
 
 * { -webkit-tap-highlight-color: transparent; }

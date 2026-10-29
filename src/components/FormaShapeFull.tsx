@@ -2,20 +2,63 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const AZUL = "#1e3fa8";
+const AZUL = "var(--azul)";
 const BLACK = "#131313";
 
 // Variante de largura total da FormaShape: a forma ocupa 100% da tela,
 // mas o conteúdo fica num wrapper interno centralizado (máx. 1400px),
 // mantendo as posições que tinha na versão em card.
 // Sem cantos arredondados nem abas laterais — só o recorte superior e a aba inferior.
-const PATH_DESKTOP = [
-  "M0 0",
-  "H350 C372 0 373 32 395 32 H485 C507 32 508 0 530 0", // recorte superior (180 de abertura, 32 de profundidade)
-  "H880 V500",
-  "H495 C470 500 468 529 440 529 C412 529 410 500 385 500", // aba inferior (convexa, para baixo)
-  "H0 Z",
-].join(" ");
+// Recorte do desktop. O desenho original (profundidade 44, transição em S de 45
+// e trecho reto de 90, em unidades da caixa 880×530) é a referência: mexer só na
+// profundidade deixa a curva íngreme, porque a transição continua com a largura
+// de antes. Então o recorte inteiro é ESCALADO por um fator k — profundidade,
+// transição e trecho reto juntos —, o que mantém a silhueta idêntica, só maior.
+// A proporção entre estes três é o que define a silhueta: transição de 45 para
+// profundidade de 32 é a curva longa e macia do desenho original. Aumentar a
+// profundidade sem mexer na transição (o que eu tinha feito) deixa a curva
+// íngreme — por isso a escala é uniforme, nunca só a profundidade.
+const NOTCH_DEPTH = 32; // profundidade natural, em unidades da caixa
+const NOTCH_TRANS = 45; // largura de cada transição em S
+const NOTCH_FLAT_HALF = 45; // metade do trecho reto
+const NOTCH_CX = 440; // centro horizontal
+// k é calculado a partir da altura do card: a profundidade natural é
+// proporcional a ela, então num notebook de tela baixa o recorte (e a logo
+// dentro dele) ficaria pequeno demais. O piso/teto em px de tela corrige isso —
+// em monitor grande k fica ~1 e o desenho é o original.
+const NOTCH_DEPTH_MIN_PX = 72;
+
+// fator de escala do recorte, a partir da altura do card em px
+function notchScale(h: number) {
+  if (!h) return 1;
+  const natural = (NOTCH_DEPTH / 530) * h; // profundidade natural, em px de tela
+  return Math.max(NOTCH_DEPTH_MIN_PX / natural, 1);
+}
+
+// kProfundidade escala só a profundidade (d): calculado a partir da altura
+// REAL do card, para a profundidade em px ficar sempre legível (mín. 72px),
+// seja no card cheio da home ou no compact das páginas internas.
+// kLargura escala a transição e o trecho reto (t, f): calculado a partir da
+// altura da hero CHEIA (não da altura real do card), para o recorte ter
+// sempre a mesma largura na tela — senão o compact (mais baixo) puxava um
+// kProfundidade maior para compensar a altura menor, e como t/f usavam o
+// mesmo k, o recorte saía bem mais largo/achatado que o da home.
+function buildDesktopPath(kProfundidade: number, kLargura: number) {
+  const d = NOTCH_DEPTH * kProfundidade;
+  const t = NOTCH_TRANS * kLargura;
+  const f = NOTCH_FLAT_HALF * kLargura;
+  const ini = NOTCH_CX - f - t; // onde a descida começa
+  const fim = NOTCH_CX + f + t; // onde a subida termina
+  return [
+    "M0 0",
+    // recorte superior: mesma curva de sempre, escalada por k
+    `H${ini} C${ini + t / 2} 0 ${ini + t / 2 + kLargura} ${d} ${NOTCH_CX - f} ${d}`,
+    `H${NOTCH_CX + f} C${fim - t / 2 - kLargura} ${d} ${fim - t / 2} 0 ${fim} 0`,
+    "H880 V500",
+    "H495 C470 500 468 529 440 529 C412 529 410 500 385 500", // aba inferior (convexa, para baixo)
+    "H0 Z",
+  ].join(" ");
+}
 
 // Mobile: vira um card com margem. O recorte da logo já começa na altura do
 // canto esquerdo (sem subida antes dele — canto baixo, aguardando definição
@@ -57,7 +100,7 @@ function buildMobilePath(
   const sy = h / 530;
   const rx = 40 / sx;
   const ry = 40 / sy;
-  const d = 44 / sy; // profundidade do recorte da logo
+  const d = 66 / sy; // profundidade do recorte da logo
   const D = SIDE_NOTCH_DEPTH_PX / sx;
   const F = SIDE_NOTCH_FLAT_PX / sy / 2; // metade do trecho reto
   const T = SIDE_NOTCH_TRANS_PX / sy;
@@ -91,13 +134,49 @@ function buildMobilePath(
   return p.join(" ");
 }
 
-// posição da logo dentro do recorte: horizontal em % (o recorte escala com a
-// largura), vertical em px fixo (a profundidade do recorte é fixa em 44px de
-// tela — % desalinharia quando o card cresce com o conteúdo)
-const NOTCH_LEFT_PCT = (215 / 880) * 100;
-// um pouco acima do centro do recorte (44px), para sobrar mais respiro
-// entre a logo e a borda azul abaixo dela
-const NOTCH_TOP_PX = 16;
+// Posição da logo no recorte do mobile. Ancorada pela ESQUERDA, não centrada:
+// o bloco tem largura própria e, centrado numa % da largura, ele vazava para
+// fora em telas estreitas (o centro anda, a largura não).
+// A altura é fluida (vw) para o bloco encolher junto com o card — o limite à
+// direita é a curva, que escala com a largura. Não é o fim do trecho reto: acima
+// dele a curva ainda deixa branco (na altura da logo sobra até ~167px num card
+// de 367). Medido no browser com isPointInFill, não estimado.
+const NOTCH_LEFT_PCT = 4.5;
+const NOTCH_LOGO_H = "clamp(28px, 9vw, 40px)";
+// centro do recorte (66px de profundidade)
+const NOTCH_TOP_PX = 33;
+
+// Conteúdo do recorte: TOP20 + traço azul + Móveis de Valor.
+// A arte da Móveis de Valor é branca chapada, e o recorte tem fundo branco, daí
+// o brightness(0): deixa ela preta mantendo o recorte do alfa, no mesmo tom do
+// "TOP 2026" da outra logo.
+// No mobile a altura vem em px; no desktop o próprio <a> tem altura (que escala
+// com o recorte) e as peças se medem em % dela.
+function LogosDoRecorte({ altura }: { altura?: number }) {
+  const h = (fracao: number) => (altura ? altura * fracao : `${fracao * 100}%`);
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/Logo_TOP20-crop.png" alt="TOP20 2026" style={{ height: h(1), width: "auto", display: "block" }} />
+      <span
+        aria-hidden="true"
+        style={{
+          width: 2,
+          height: h(0.78),
+          borderRadius: 1,
+          background: "var(--azul)", // mesmo azul do fundo do hero
+          flex: "none",
+        }}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/Logo_Moveis_de_Valor-2.png"
+        alt="Móveis de Valor"
+        style={{ height: h(0.75), width: "auto", display: "block", filter: "brightness(0)" }}
+      />
+    </>
+  );
+}
 
 export function FormaShapeFull({
   children,
@@ -122,6 +201,16 @@ export function FormaShapeFull({
   const cardRef = useRef<HTMLDivElement>(null);
   // path estático como fallback (SSR / antes da primeira medição)
   const [mobilePath, setMobilePath] = useState(PATH_MOBILE);
+  // escala da profundidade do recorte (1 = desenho original): a partir da
+  // altura REAL do card, para a profundidade em px (e o tamanho da logo, que
+  // é % dela) ficarem sempre legíveis — inclusive no card mais baixo (compact).
+  const [escalaProfundidade, setEscalaProfundidade] = useState(1);
+  // escala da largura do recorte (transição + trecho reto): a partir da
+  // altura da hero CHEIA (mesma fórmula do CSS não-compacto, nunca da altura
+  // real do card), pra o recorte ter sempre a mesma largura na tela — senão o
+  // compact puxava a mesma escala da profundidade e o recorte saía mais
+  // largo/achatado que o da home.
+  const [escalaLargura, setEscalaLargura] = useState(1);
 
   const notchLeft = !!sideNotches?.left;
   const notchRight = !!sideNotches?.right;
@@ -141,11 +230,21 @@ export function FormaShapeFull({
             right: notchRight && mq.matches,
           }),
         );
+        setEscalaProfundidade(notchScale(h));
       }
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, [notchLeft, notchRight]);
+
+  useEffect(() => {
+    function atualizarEscalaLargura() {
+      setEscalaLargura(notchScale(Math.max(window.innerHeight - 20, 620)));
+    }
+    atualizarEscalaLargura();
+    window.addEventListener("resize", atualizarEscalaLargura);
+    return () => window.removeEventListener("resize", atualizarEscalaLargura);
+  }, []);
 
   return (
     <div
@@ -157,7 +256,7 @@ export function FormaShapeFull({
     >
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <clipPath id="forma-clip-full" clipPathUnits="objectBoundingBox" transform={`scale(${1 / 880}, ${1 / 530})`}>
-          <path d={PATH_DESKTOP} />
+          <path d={buildDesktopPath(escalaProfundidade, escalaLargura)} />
         </clipPath>
         <clipPath id="forma-clip-mobile" clipPathUnits="objectBoundingBox" transform={`scale(${1 / 880}, ${1 / 530})`}>
           <path d={mobilePath} />
@@ -173,7 +272,7 @@ export function FormaShapeFull({
         className="forma-card forma-clip-path"
         style={{
           background:
-            "radial-gradient(120% 90% at 50% -10%, #5b9cf6 0%, rgba(47,106,224,0.55) 40%, rgba(47,106,224,0) 65%), linear-gradient(160deg, #2e6fe8 0%, #1a4fd4 45%, #0d2fa6 100%)",
+"var(--grad)",
         }}
       >
         {/* wrapper interno: mantém o conteúdo na largura do card original */}
@@ -202,12 +301,13 @@ export function FormaShapeFull({
         <a
           href="/"
           aria-label="TOP20 — Móveis de Valor"
-          className="flex flex-col items-center"
+          className="flex flex-row items-center gap-2.5"
           style={{
             position: "absolute",
             top: NOTCH_TOP_PX,
             left: `${NOTCH_LEFT_PCT}%`,
-            transform: "translate(-50%, -50%)",
+            height: NOTCH_LOGO_H,
+            transform: "translateY(-50%)",
             color: BLACK,
             textDecoration: "none",
             lineHeight: 1,
@@ -215,10 +315,7 @@ export function FormaShapeFull({
             pointerEvents: "auto",
           }}
         >
-          <span style={{ fontWeight: 900, fontSize: 26, letterSpacing: "-0.03em" }}>TOP20</span>
-          <span style={{ fontWeight: 700, fontSize: 8, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.7, marginTop: 2, whiteSpace: "nowrap" }}>
-            Móveis de Valor
-          </span>
+          <LogosDoRecorte />
         </a>
 
         {/* menu: ícone simples, sem recorte nem fundo, direto sobre o azul */}
@@ -256,41 +353,22 @@ export function FormaShapeFull({
         className="hidden lg:flex"
         style={{
           position: "absolute",
-          top: `${(16 / 530) * 100}%`, // metade da profundidade do recorte (32/2)
+          // a logo acompanha a profundidade do recorte: topo e altura em %
+          // da caixa 880×530, usando a mesma escala de profundidade do path
+          top: `${((NOTCH_DEPTH * escalaProfundidade) / 2 / 530) * 100}%`, // centro do recorte
+          height: `${((NOTCH_DEPTH * escalaProfundidade * 0.72) / 530) * 100}%`, // 72% da profundidade: respiro em cima e embaixo
           left: "50%",
           transform: "translate(-50%, -50%)",
           color: BLACK,
           textDecoration: "none",
           lineHeight: 1,
           userSelect: "none",
-          flexDirection: "column",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
         }}
       >
-        <span
-          style={{
-            fontWeight: 900,
-            fontSize: "clamp(15px, 2.4vw, 28px)",
-            letterSpacing: "-0.03em",
-            textAlign: "center",
-          }}
-        >
-          TOP20
-        </span>
-        <span
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontWeight: 700,
-            fontSize: "clamp(4.5px, 0.6vw, 7px)",
-            textTransform: "uppercase",
-            opacity: 0.85,
-            marginTop: 3,
-          }}
-        >
-          {"MÓVEIS DE VALOR".split("").map((c, i) => (
-            <span key={i}>{c === " " ? " " : c}</span>
-          ))}
-        </span>
+        <LogosDoRecorte />
       </a>
 
       {/* seta para baixo na aba inferior: rola até a próxima section (só desktop) */}

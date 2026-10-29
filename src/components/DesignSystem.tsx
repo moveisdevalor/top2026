@@ -2,10 +2,9 @@
    degradê azul, pills com círculo-seta, chips translúcidos, labels espaçadas.
    Usado pela home (HomeSections) e reaproveitado nas páginas internas. */
 
-export const GRADIENTE =
-  "radial-gradient(120% 90% at 50% -10%, #5b9cf6 0%, rgba(47,106,224,0.55) 40%, rgba(47,106,224,0) 65%), linear-gradient(160deg, #2e6fe8 0%, #1a4fd4 45%, #0d2fa6 100%)";
+export const GRADIENTE = "var(--grad)";
 
-export const AZUL = "#1a4fd4";
+export const AZUL = "var(--azul)";
 export const CINZA = "#f1f3f7";
 
 export function Seta() {

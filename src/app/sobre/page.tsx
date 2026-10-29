@@ -19,7 +19,7 @@ export default function SobrePage() {
 
           <h1 className="font-black text-[2.25rem] sm:text-5xl md:text-7xl leading-[1.02] sm:leading-[0.95] tracking-[-0.02em] mb-6 sm:mb-8 text-balance">
             Vote agora e ajude<br className="hidden sm:block" /> a decidir quem é<br />
-            <span style={{ color: "#d4a017" }}>TOP 20</span> de <span style={{ color: "#7cc4e8" }}>2026</span>.
+            <span style={{ color: "#d4a017" }}>TOP 20</span> de <span style={{ color: "var(--azul-claro)" }}>2026</span>.
           </h1>
 
           <p className="text-white/75 leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10 text-[15px] sm:text-base md:text-lg">
@@ -31,7 +31,7 @@ export default function SobrePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-center gap-3 mb-10 sm:mb-12">
-            <PillBranco href="/industria">Votar agora</PillBranco>
+            <PillBranco href="/">Votar agora</PillBranco>
             <PillContorno href="/vencedores">Ver vencedores</PillContorno>
           </div>
 
@@ -59,7 +59,7 @@ export default function SobrePage() {
                   do que ser lembrado: é ter a confiança e o respeito de todo o setor.
                 </p>
 
-                <PillAzul href="/industria">Participar do TOP 20</PillAzul>
+                <PillAzul href="/">Participar do TOP 20</PillAzul>
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -105,7 +105,7 @@ export default function SobrePage() {
                 n="03"
                 title="Resultado oficial"
                 desc="O ranking é publicado na revista Móveis de Valor e nos canais oficiais do TOP 20."
-                accent="#7cc4e8"
+                accent="var(--azul-claro)"
               />
             </div>
           </div>

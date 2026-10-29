@@ -14,6 +14,8 @@ type Props = {
   brandSuggestions?: string[];
   /** Ajusta cores para quando o formulário está sobre o fundo azul do hero. */
   onDark?: boolean;
+  /** Avisa o pai quando os 5 votos são concluídos (tela "Obrigado!"). */
+  onDoneChange?: (done: boolean) => void;
 };
 
 type Vote = { marca: string; nota: number };
@@ -39,6 +41,33 @@ const TOP_ID = (area: Props["area"]) => (area === "industria" ? 2 : 1);
 
 const STORAGE_KEY = (area: Props["area"]) => `top20:identity:${area}`;
 const SWITCH_KEY = (area: Props["area"]) => `top20:switched:${area}`;
+
+// localStorage pode lançar exceção (Safari em modo privado, navegadores
+// in-app do Instagram/Facebook, Lockdown Mode) — sem isso a página inteira
+// quebra com "application error" ao montar o formulário.
+const safeStorage = {
+  get: (k: string) => {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  set: (k: string, v: string) => {
+    try {
+      localStorage.setItem(k, v);
+    } catch {
+      // ignora: identificação simplesmente não persiste nesta sessão
+    }
+  },
+  remove: (k: string) => {
+    try {
+      localStorage.removeItem(k);
+    } catch {
+      // ignora
+    }
+  },
+};
 
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
@@ -66,6 +95,7 @@ export function VoteForm({
   voteSubject,
   brandSuggestions = [],
   onDark = false,
+  onDoneChange,
 }: Props) {
   const [identified, setIdentified] = useState(false);
   const [nome, setNome] = useState("");
@@ -85,6 +115,11 @@ export function VoteForm({
   const color = accent(area);
   const remaining = MAX - votes.length;
   const done = votes.length >= MAX;
+
+  useEffect(() => {
+    onDoneChange?.(done);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
 
   // rótulo e título no estilo das colunas do hero
   const heroLabel = area === "industria" ? "QUEM TRANSFORMA" : "QUEM ABASTECE";
@@ -108,7 +143,7 @@ export function VoteForm({
 
   // Restaura identificação + busca votos da API ao carregar
   useEffect(() => {
-    const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY(area)) : null;
+    const raw = typeof window !== "undefined" ? safeStorage.get(STORAGE_KEY(area)) : null;
     if (!raw) {
       setLoading(false);
       return;
@@ -168,7 +203,7 @@ export function VoteForm({
     } catch {
       // se a API falhar na busca, segue sem votos prévios
     } finally {
-      localStorage.setItem(STORAGE_KEY(area), JSON.stringify({ nome: n, email: em }));
+      safeStorage.set(STORAGE_KEY(area), JSON.stringify({ nome: n, email: em }));
       setIdentified(true);
       setSubmitting(false);
       trackEvent(EV.voteId, area);
@@ -190,13 +225,14 @@ export function VoteForm({
       return setError("Você já votou nesta marca.");
     }
 
-    const media = Math.round(
-      ATRIBUTOS.reduce((s, a) => s + notas[a.key], 0) / ATRIBUTOS.length,
-    );
+    const media =
+      Math.round(
+        (ATRIBUTOS.reduce((s, a) => s + notas[a.key], 0) / ATRIBUTOS.length) * 10,
+      ) / 10;
 
     setSubmitting(true);
     try {
-      const switched = localStorage.getItem(SWITCH_KEY(area)) === "1";
+      const switched = safeStorage.get(SWITCH_KEY(area)) === "1";
       const loc = locationRef.current ?? (await getLocation());
       locationRef.current = loc;
 
@@ -218,7 +254,7 @@ export function VoteForm({
         ip:    loc.ip,
       });
 
-      if (switched) localStorage.removeItem(SWITCH_KEY(area));
+      if (switched) safeStorage.remove(SWITCH_KEY(area));
 
       const novos = [...votes, { marca: marcaLimpa, nota: media }];
       setVotes(novos);
@@ -234,8 +270,8 @@ export function VoteForm({
   };
 
   const reset = () => {
-    localStorage.removeItem(STORAGE_KEY(area));
-    localStorage.setItem(SWITCH_KEY(area), "1");
+    safeStorage.remove(STORAGE_KEY(area));
+    safeStorage.set(SWITCH_KEY(area), "1");
     setIdentified(false);
     setNome("");
     setEmail("");
@@ -275,7 +311,7 @@ export function VoteForm({
               }
             >
               <div
-                className={`inline-grid place-items-center w-14 h-14 rounded-full mb-5 ${onDark ? "border border-white/25" : ""}`}
+                className={`inline-grid place-items-center w-14 h-14 rounded-full mb-5 ${onDark ? "mt-6 sm:mt-8 border border-white/25" : ""}`}
                 style={{ background: onDark ? "rgba(255,255,255,0.12)" : `${color}20`, color: onDark ? "#fff" : color }}
               >
                 <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -297,14 +333,16 @@ export function VoteForm({
               </p>
               <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <a
-                  href="/comemoracao"
+                  href="https://www.moveisdevalor.com.br/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={
                     onDark
-                      ? "inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
+                      ? "inline-flex items-center justify-center gap-2 rounded-full bg-white text-[var(--azul)] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors"
                       : "inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
                   }
                 >
-                  Ver a última edição
+                  Visitar Móveis de Valor
                   {onDark && <ArrowIcon />}
                 </a>
                 <a
@@ -318,7 +356,7 @@ export function VoteForm({
                   Voltar à home
                 </a>
               </div>
-              <ShareVote onDark={onDark} />
+              <ShareVote onDark={onDark} votos={votes} accent={color} area={area} />
             </div>
           ) : !identified ? (
             <form
@@ -370,7 +408,7 @@ export function VoteForm({
                     setAceite(e.target.checked);
                     setError("");
                   }}
-                  className="mt-0.5 w-4 h-4 shrink-0 accent-[#1a4fd4] cursor-pointer"
+                  className="mt-0.5 w-4 h-4 shrink-0 accent-[var(--azul)] cursor-pointer"
                 />
                 <span>
                   Li e aceito o{" "}
@@ -523,9 +561,12 @@ export function VoteForm({
               }
             >
               {submitting ? "Enviando..." : "Próximo"}
-              {!submitting && onDark && <ArrowIcon />}
-              {!submitting && !onDark && "→"}
+              {!submitting && onDark && <ArrowIcon className="arrow-float-x" />}
+              {!submitting && !onDark && <span className="inline-block arrow-float-x">→</span>}
             </button>
+            <p className={`text-[11px] text-center leading-relaxed ${onDark ? `text-white/60 ${SOMBRA}` : "text-[var(--color-muted)]"}`}>
+              Ao avançar, este voto já fica salvo.
+            </p>
             </div>
           ) : (
           <>
@@ -594,7 +635,7 @@ export function VoteForm({
             style={onDark ? undefined : { color, background: `${color}14` }}
           >
             <strong style={onDark ? { color } : undefined}>IMPORTANTE:</strong> os resultados formarão um ranking das
-            20 marcas mais bem avaliadas e será divulgado na edição da revista
+            20 marcas mais bem avaliadas e será divulgado na edição de novembro da revista
             MÓVEIS DE VALOR.
           </p>
           </>
@@ -639,11 +680,11 @@ function Input({
 
 // botão-pílula branco no estilo do "Votar" do hero
 const heroPillClass =
-  "w-full inline-flex items-center justify-center gap-2 rounded-full bg-white text-[#1a4fd4] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
+  "w-full inline-flex items-center justify-center gap-2 rounded-full bg-white text-[var(--azul)] px-6 py-3 text-sm font-semibold hover:bg-[var(--color-primary-soft)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
-function ArrowIcon() {
+function ArrowIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={`w-4 h-4 ${className}`} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M5 12h14M13 5l7 7-7 7" />
     </svg>
   );
