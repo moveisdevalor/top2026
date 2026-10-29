@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Banner — TOP 20 | Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    max-width: 698px;
+    margin: 0 auto;
+    min-height: 76px;
+    background:
+      radial-gradient(120% 160% at 15% -20%, #5fded4 0%, rgba(45,180,175,0.5) 35%, rgba(45,180,175,0) 60%),
+      linear-gradient(100deg, #2ab3ad 0%, #14807f 45%, #063f45 100%);
+    color: #fff;
+    overflow: hidden;
+    container-type: inline-size;
+  }
+  a { text-decoration: none; color: inherit; }
+  .banner { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 76px; padding: 10px 16px; }
+  .logo { height: clamp(28px, 9vw, 44px); width: auto; flex: none; }
+  .divider { width: 1px; height: clamp(24px, 7vw, 38px); background: rgba(255,255,255,0.2); flex: none; }
+  .text { flex: 1 1 auto; min-width: 0; transition: opacity 0.4s ease; opacity: 1; }
+  .text.fade { opacity: 0; }
+  .kicker {
+    font-size: clamp(8px, 2vw, 9px);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .headline {
+    font-size: clamp(13px, 3.4vw, 17px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .headline span { color: #7fdcd4; }
+  .headline b { font-weight: 900; font-variant-numeric: tabular-nums; }
+  .headline i { font-style: normal; font-size: clamp(9px, 2.2vw, 10px); font-weight: 700; color: rgba(255,255,255,0.6); margin-right: 5px; }
+  .headline .cd-sep { color: rgba(255,255,255,0.3); margin: 0 1px; }
+  .spacer { flex: 1 1 16px; min-width: 0; }
+  .cta {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    color: #14807f;
+    font-size: clamp(11px, 2.8vw, 13px);
+    font-weight: 700;
+    padding: clamp(7px, 2vw, 9px) clamp(12px, 3.5vw, 16px);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  @container (max-width: 380px) {
+    .banner { gap: 8px; padding: 9px 12px; }
+    .divider { display: none; }
+  }
+</style>
+</head>
+<body>
+  <a class="banner" href="https://top20.moveisdevalor.com.br/" target="_blank" rel="noopener noreferrer">
+    <img class="logo" src="https://top20.moveisdevalor.com.br/logo2026-crop.png" alt="TOP 20 2026" />
+    <div class="divider"></div>
+    <div class="text" id="text">
+      <p class="kicker" id="kicker">Prazo final</p>
+      <p class="headline" id="headline">Vote até <span>07 de novembro</span></p>
+    </div>
+
+    <div class="spacer"></div>
+
+    <span class="cta">
+      Votar agora
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M13 5l7 7-7 7" />
+      </svg>
+    </span>
+  </a>
+
+  <script>
+    // prazo oficial do regulamento: encerra às 24h do dia 07/11/2026 (horário de Brasília)
+    var DEADLINE = new Date("2026-11-07T23:59:59-03:00").getTime();
+    var kickerEl = document.getElementById("kicker");
+    var headlineEl = document.getElementById("headline");
+    var textEl = document.getElementById("text");
+
+    var TEXTO_FIXO = {
+      kicker: "Ainda não votou?",
+      headline: 'Vote agora no <span>TOP 20 2026</span>',
+    };
+
+    function headlineContagem() {
+      var diff = DEADLINE - Date.now();
+      if (diff <= 0) return "A votação encerrou";
+      var d = Math.floor(diff / 86400000);
+      var h = Math.floor((diff / 3600000) % 24);
+      var m = Math.floor((diff / 60000) % 60);
+      var s = Math.floor((diff / 1000) % 60);
+      function pad(n) { return String(n).padStart(2, "0"); }
+      function unidade(v, l) { return "<b>" + pad(v) + "</b><i>" + l + "</i>"; }
+      return (
+        unidade(d, "d") + '<span class="cd-sep">:</span>' +
+        unidade(h, "h") + '<span class="cd-sep">:</span>' +
+        unidade(m, "m") + '<span class="cd-sep">:</span>' +
+        unidade(s, "s")
+      );
+    }
+
+    // modo 0 = texto fixo (prazo final), modo 1 = contagem regressiva em destaque
+    var modo = 0;
+
+    function desenhar() {
+      if (modo === 0) {
+        kickerEl.textContent = TEXTO_FIXO.kicker;
+        headlineEl.innerHTML = TEXTO_FIXO.headline;
+      } else {
+        kickerEl.textContent = "Falta pouco, a votação encerra em";
+        headlineEl.innerHTML = headlineContagem();
+      }
+    }
+
+    desenhar();
+    // mantém a contagem correndo segundo a segundo enquanto estiver visível
+    setInterval(function () { if (modo === 1) desenhar(); }, 1000);
+
+    // alterna entre os dois modos, com fade
+    setInterval(function () {
+      textEl.classList.add("fade");
+      setTimeout(function () {
+        modo = modo === 0 ? 1 : 0;
+        desenhar();
+        textEl.classList.remove("fade");
+      }, 400);
+    }, 4000);
+  </script>
+</body>
+</html>
